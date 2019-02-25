@@ -1,6 +1,8 @@
 # cod-compress
 
-Compress middleware for cod.
+[![Build Status](https://img.shields.io/travis/vicanso/cod-compress.svg?label=linux+build)](https://travis-ci.org/vicanso/cod-compress)
+
+Compress middleware for cod, it support gzip compress function. For better performance, you can add more compress function such as brotli.
 
 ```go
 package main
@@ -14,9 +16,7 @@ import (
 
 func main() {
 	d := cod.New()
-	d.Keys = []string{
-		"cuttlefish",
-	}
+
 	d.Use(compress.NewDefault())
 
 	d.GET("/", func(c *cod.Context) (err error) {

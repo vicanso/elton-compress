@@ -132,12 +132,11 @@ func New(config Config) cod.Handler {
 			return
 		}
 
-		respHeader := c.Headers
 		// encoding 不为空，已做处理，无需要压缩
-		if respHeader.Get(cod.HeaderContentEncoding) != "" {
+		if c.GetHeader(cod.HeaderContentEncoding) != "" {
 			return
 		}
-		contentType := respHeader.Get(cod.HeaderContentType)
+		contentType := c.GetHeader(cod.HeaderContentType)
 		buf := bodyBuf.Bytes()
 		// 如果数据长度少于最小压缩长度或数据类型为非可压缩，则返回
 		if len(buf) < minLength || !checker.MatchString(contentType) {
