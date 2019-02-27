@@ -143,11 +143,7 @@ func New(config Config) cod.Handler {
 			return
 		}
 
-		done := false
 		for _, compressor := range compressorList {
-			if done {
-				break
-			}
 			acceptable, encoding := compressor.Accept(c)
 			if !acceptable {
 				continue
@@ -159,7 +155,7 @@ func New(config Config) cod.Handler {
 				c.SetHeader(cod.HeaderContentEncoding, encoding)
 				bodyBuf.Reset()
 				bodyBuf.Write(newBuf)
-				done = true
+				break
 			}
 		}
 		return
