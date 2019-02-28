@@ -13,13 +13,13 @@ import (
 
 var letterRunes = []rune("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_")
 
-type brCompressor struct{}
+type testCompressor struct{}
 
-func (br *brCompressor) Accept(c *cod.Context) (acceptable bool, encoding string) {
+func (t *testCompressor) Accept(c *cod.Context) (acceptable bool, encoding string) {
 	return AcceptEncoding(c, "br")
 }
 
-func (br *brCompressor) Compress(buf []byte, level int) ([]byte, error) {
+func (t *testCompressor) Compress(buf []byte, level int) ([]byte, error) {
 	return []byte("abcd"), nil
 }
 
@@ -31,15 +31,6 @@ func randomString(n int) string {
 		b[i] = letterRunes[rand.Intn(len(letterRunes))]
 	}
 	return string(b)
-}
-
-func TestAddGzip(t *testing.T) {
-	compressorList := make([]Compressor, 0)
-	compressorList = addGzip(compressorList)
-	compressorList = addGzip(compressorList)
-	if len(compressorList) != 2 {
-		t.Fatalf("add gzip fail")
-	}
 }
 
 func TestCompress(t *testing.T) {
@@ -208,7 +199,7 @@ func TestCompress(t *testing.T) {
 	t.Run("custom compress", func(t *testing.T) {
 
 		compressorList := make([]Compressor, 0)
-		compressorList = append(compressorList, new(brCompressor))
+		compressorList = append(compressorList, new(testCompressor))
 		fn := New(Config{
 			CompressorList: compressorList,
 		})

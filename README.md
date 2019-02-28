@@ -2,7 +2,7 @@
 
 [![Build Status](https://img.shields.io/travis/vicanso/cod-compress.svg?label=linux+build)](https://travis-ci.org/vicanso/cod-compress)
 
-Compress middleware for cod, it support gzip compress function by default. For better performance, you can add more compress function such as brotli.
+Compress middleware for cod, it support gzip compress function by default. For better performance, you can add more compress function such as [brotli](./brotli.md).
 
 ```go
 package main

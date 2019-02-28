@@ -15,8 +15,6 @@
 package compress
 
 import (
-	"bytes"
-	"compress/gzip"
 	"regexp"
 	"strings"
 
@@ -52,24 +50,7 @@ type (
 		// Skipper skipper function
 		Skipper cod.Skipper
 	}
-	// gzipCompressor gzip compress
-	gzipCompressor struct{}
 )
-
-// doGzip 对数据压缩
-func doGzip(buf []byte, level int) ([]byte, error) {
-	var b bytes.Buffer
-	if level <= 0 {
-		level = gzip.DefaultCompression
-	}
-	w, _ := gzip.NewWriterLevel(&b, level)
-	_, err := w.Write(buf)
-	if err != nil {
-		return nil, err
-	}
-	w.Close()
-	return b.Bytes(), nil
-}
 
 // AcceptEncoding check request accept encoding
 func AcceptEncoding(c *cod.Context, encoding string) (bool, string) {
@@ -78,18 +59,6 @@ func AcceptEncoding(c *cod.Context, encoding string) (bool, string) {
 		return true, encoding
 	}
 	return false, ""
-}
-
-func (g *gzipCompressor) Accept(c *cod.Context) (acceptable bool, encoding string) {
-	return AcceptEncoding(c, "gzip")
-}
-
-func (g *gzipCompressor) Compress(buf []byte, level int) ([]byte, error) {
-	return doGzip(buf, level)
-}
-
-func addGzip(items []Compressor) []Compressor {
-	return append(items, new(gzipCompressor))
 }
 
 // NewDefault create a default compress middleware, support gzip
@@ -115,8 +84,12 @@ func New(config Config) cod.Handler {
 	if compressorList == nil {
 		compressorList = make([]Compressor, 0)
 	}
+
+	// 添加默认的 brotli 压缩
+	compressorList = append(compressorList, new(brCompressor))
+
 	// 添加默认的 gzip 压缩
-	compressorList = addGzip(compressorList)
+	compressorList = append(compressorList, new(gzipCompressor))
 	return func(c *cod.Context) (err error) {
 		if skipper(c) {
 			return c.Next()
