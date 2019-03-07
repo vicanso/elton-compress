@@ -4,6 +4,9 @@
 
 Compress middleware for cod, it support gzip compress function by default. For better performance, you can add more compress function such as [brotli](./brotli.md).
 
+- `BrCompressor` brotli compress is better for http, most modern browser support it.
+- `SnappyCompressor` snappy compress is fast, but not aim for maximum compression. It's useful for Intranet.
+
 ```go
 package main
 

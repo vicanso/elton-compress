@@ -63,7 +63,20 @@ func AcceptEncoding(c *cod.Context, encoding string) (bool, string) {
 
 // NewDefault create a default compress middleware, support gzip
 func NewDefault() cod.Handler {
-	return New(Config{})
+	compressorList := make([]Compressor, 0)
+	// 添加默认的 brotli 压缩
+	br := new(BrCompressor)
+	_, err := br.Compress([]byte("brotli"), 0)
+	if err != nil {
+		compressorList = append(compressorList, br)
+	}
+
+	// 添加默认的 gzip 压缩
+	compressorList = append(compressorList, new(GzipCompressor))
+
+	return New(Config{
+		CompressorList: compressorList,
+	})
 }
 
 // New create a new compress middleware
@@ -81,17 +94,8 @@ func New(config Config) cod.Handler {
 		checker = defaultCompressRegexp
 	}
 	compressorList := config.CompressorList
-	if compressorList == nil {
-		compressorList = make([]Compressor, 0)
-	}
-
-	// 添加默认的 brotli 压缩
-	compressorList = append(compressorList, new(brCompressor))
-
-	// 添加默认的 gzip 压缩
-	compressorList = append(compressorList, new(gzipCompressor))
 	return func(c *cod.Context) (err error) {
-		if skipper(c) {
+		if skipper(c) || compressorList == nil {
 			return c.Next()
 		}
 		err = c.Next()

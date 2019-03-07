@@ -10,7 +10,7 @@ import (
 )
 
 func TestBrotliCompress(t *testing.T) {
-	br := new(brCompressor)
+	br := new(BrCompressor)
 	req := httptest.NewRequest("GET", "/users/me", nil)
 	req.Header.Set("Accept-Encoding", "gzip, deflate, br")
 	c := cod.NewContext(nil, req)

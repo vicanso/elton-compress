@@ -8,7 +8,7 @@ import (
 )
 
 func TestGzipCompress(t *testing.T) {
-	g := new(gzipCompressor)
+	g := new(GzipCompressor)
 	req := httptest.NewRequest("GET", "/users/me", nil)
 	req.Header.Set("Accept-Encoding", "gzip, deflate, br")
 	c := cod.NewContext(nil, req)

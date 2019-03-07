@@ -82,9 +82,12 @@ func TestCompress(t *testing.T) {
 	})
 
 	t.Run("normal", func(t *testing.T) {
+		compressorList := make([]Compressor, 0)
+		compressorList = append(compressorList, new(GzipCompressor))
 		fn := New(Config{
-			Level:     1,
-			MinLength: 1,
+			Level:          1,
+			MinLength:      1,
+			CompressorList: compressorList,
 		})
 
 		req := httptest.NewRequest("GET", "/users/me", nil)

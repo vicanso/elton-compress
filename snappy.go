@@ -12,26 +12,30 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// +build !brotli
-
 package compress
 
 import (
-	"errors"
-
+	"github.com/golang/snappy"
 	"github.com/vicanso/cod"
 )
 
-type (
-	BrCompressor struct{}
+const (
+	snappyEncoding = "snappy"
 )
 
-// Accept just not accept all
-func (b *BrCompressor) Accept(_ *cod.Context) (acceptable bool, encoding string) {
-	return
+type (
+	// SnappyCompressor snappy compress
+	SnappyCompressor struct{}
+)
+
+// Accept check accept encoding
+func (s *SnappyCompressor) Accept(c *cod.Context) (acceptable bool, encoding string) {
+	return AcceptEncoding(c, snappyEncoding)
 }
 
-// Compress just return not support error
-func (b *BrCompressor) Compress(buf []byte, level int) ([]byte, error) {
-	return nil, errors.New("not support brotli")
+// Compress snappy compress
+func (s *SnappyCompressor) Compress(buf []byte, level int) ([]byte, error) {
+	var dst []byte
+	data := snappy.Encode(dst, buf)
+	return data, nil
 }

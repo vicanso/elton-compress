@@ -27,16 +27,17 @@ const (
 )
 
 type (
-	brCompressor struct{}
+	// BrCompressor brotli compress
+	BrCompressor struct{}
 )
 
-// Accept just not accept all
-func (b *brCompressor) Accept(c *cod.Context) (acceptable bool, encoding string) {
+// Accept check accept econding
+func (b *BrCompressor) Accept(c *cod.Context) (acceptable bool, encoding string) {
 	return AcceptEncoding(c, brEncoding)
 }
 
-// Compress just return not support error
-func (b *brCompressor) Compress(buf []byte, level int) ([]byte, error) {
+// Compress brotli compress
+func (b *BrCompressor) Compress(buf []byte, level int) ([]byte, error) {
 	if level == 0 {
 		level = 9
 	}

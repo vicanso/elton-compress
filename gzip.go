@@ -26,17 +26,17 @@ const (
 )
 
 type (
-	// gzipCompressor gzip compress
-	gzipCompressor struct{}
+	// GzipCompressor gzip compress
+	GzipCompressor struct{}
 )
 
 // Accept accept gzip encoding
-func (g *gzipCompressor) Accept(c *cod.Context) (acceptable bool, encoding string) {
+func (g *GzipCompressor) Accept(c *cod.Context) (acceptable bool, encoding string) {
 	return AcceptEncoding(c, gzipEncoding)
 }
 
 // Compress compress data by gzip
-func (g *gzipCompressor) Compress(buf []byte, level int) ([]byte, error) {
+func (g *GzipCompressor) Compress(buf []byte, level int) ([]byte, error) {
 	return doGzip(buf, level)
 }
 
