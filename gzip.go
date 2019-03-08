@@ -54,6 +54,9 @@ func doGzip(buf []byte, level int) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	w.Close()
+	err = w.Close()
+	if err != nil {
+		return nil, err
+	}
 	return b.Bytes(), nil
 }
