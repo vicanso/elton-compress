@@ -11,5 +11,5 @@ script:
   - cd brotli && mkdir out && cd out
   - ../configure-cmake --disable-debug
   - make
-  - cd ..
+  - cd ../..
   - make test-all
