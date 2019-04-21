@@ -7,9 +7,4 @@ go:
   - master
 
 script:
-  - git clone --depth=1 https://github.com/google/brotli.git
-  - cd brotli && mkdir out && cd out
-  - ../configure-cmake --disable-debug
-  - sudo make && make install
-  - cd ../..
-  - make test-all
+  make test
