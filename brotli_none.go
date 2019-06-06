@@ -28,7 +28,7 @@ type (
 
 // Accept just not accept all
 func (b *BrCompressor) Accept(_ *cod.Context) (acceptable bool, encoding string) {
-	return
+	return false, ""
 }
 
 // Compress just return not support error

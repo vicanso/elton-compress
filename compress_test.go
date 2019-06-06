@@ -3,11 +3,14 @@ package compress
 import (
 	"bytes"
 	"errors"
+	"fmt"
 	"math/rand"
 	"net/http/httptest"
+	"os"
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/vicanso/cod"
 )
 
@@ -33,8 +36,23 @@ func randomString(n int) string {
 	return string(b)
 }
 
+func TestAcceptEncoding(t *testing.T) {
+	assert := assert.New(t)
+	req := httptest.NewRequest("GET", "/", nil)
+	c := cod.NewContext(nil, req)
+	acceptable, encoding := AcceptEncoding(c, cod.Gzip)
+	assert.False(acceptable)
+	assert.Empty(encoding)
+
+	c.SetRequestHeader(cod.HeaderAcceptEncoding, cod.Gzip)
+	acceptable, encoding = AcceptEncoding(c, cod.Gzip)
+	assert.True(acceptable)
+	assert.Equal(encoding, cod.Gzip)
+}
+
 func TestCompress(t *testing.T) {
 	t.Run("skip", func(t *testing.T) {
+		assert := assert.New(t)
 		c := cod.NewContext(nil, nil)
 		done := false
 		c.Next = func() error {
@@ -47,13 +65,12 @@ func TestCompress(t *testing.T) {
 			},
 		})
 		err := fn(c)
-		if err != nil ||
-			!done {
-			t.Fatalf("skip fail")
-		}
+		assert.Nil(err)
+		assert.True(done)
 	})
 
 	t.Run("nil body", func(t *testing.T) {
+		assert := assert.New(t)
 		c := cod.NewContext(nil, nil)
 		done := false
 		c.Next = func() error {
@@ -62,26 +79,24 @@ func TestCompress(t *testing.T) {
 		}
 		fn := NewDefault()
 		err := fn(c)
-		if err != nil ||
-			!done {
-			t.Fatalf("nil body should skip")
-		}
+		assert.Nil(err)
+		assert.True(done)
 	})
 
 	t.Run("return error", func(t *testing.T) {
+		assert := assert.New(t)
 		c := cod.NewContext(nil, nil)
 		customErr := errors.New("abccd")
 		c.Next = func() error {
 			return customErr
 		}
-		fn := New(Config{})
+		fn := NewDefault()
 		err := fn(c)
-		if err != customErr {
-			t.Fatalf("it should return error")
-		}
+		assert.Equal(err, customErr)
 	})
 
 	t.Run("normal", func(t *testing.T) {
+		assert := assert.New(t)
 		compressorList := make([]Compressor, 0)
 		compressorList = append(compressorList, new(GzipCompressor))
 		fn := New(Config{
@@ -103,17 +118,15 @@ func TestCompress(t *testing.T) {
 			return nil
 		}
 		err := fn(c)
-		if err != nil || !done {
-			t.Fatalf("compress middleware fail, %v", err)
-		}
-		if c.BodyBuffer.Len() >= originalSize ||
-			c.GetHeader(cod.HeaderContentEncoding) != "gzip" {
-			t.Fatalf("compress fail")
-		}
+		assert.Nil(err)
+		assert.True(done)
+		assert.True(c.BodyBuffer.Len() < originalSize)
+		assert.Equal(c.GetHeader(cod.HeaderContentEncoding), "gzip")
 	})
 
 	t.Run("encoding done", func(t *testing.T) {
-		fn := New(Config{})
+		assert := assert.New(t)
+		fn := NewDefault()
 		req := httptest.NewRequest("GET", "/users/me", nil)
 		resp := httptest.NewRecorder()
 		c := cod.NewContext(resp, req)
@@ -124,16 +137,13 @@ func TestCompress(t *testing.T) {
 		c.BodyBuffer = body
 		c.SetHeader(cod.HeaderContentEncoding, "gzip")
 		err := fn(c)
-		if err != nil {
-			t.Fatalf("compress fail, %v", err)
-		}
-		if !bytes.Equal(c.BodyBuffer.Bytes(), body.Bytes()) {
-			t.Fatalf("the data is encoding, it should not be compress")
-		}
+		assert.Nil(err)
+		assert.Equal(c.BodyBuffer.Bytes(), body.Bytes())
 	})
 
 	t.Run("body size is less than min length", func(t *testing.T) {
-		fn := New(Config{})
+		assert := assert.New(t)
+		fn := NewDefault()
 
 		req := httptest.NewRequest("GET", "/users/me", nil)
 		req.Header.Set(cod.HeaderAcceptEncoding, "gzip")
@@ -145,17 +155,15 @@ func TestCompress(t *testing.T) {
 		body := bytes.NewBufferString("abcd")
 		c.BodyBuffer = body
 		err := fn(c)
-		if err != nil {
-			t.Fatalf("compress fail, %v", err)
-		}
-		if !bytes.Equal(c.BodyBuffer.Bytes(), body.Bytes()) ||
-			c.GetHeader(cod.HeaderContentEncoding) != "" {
-			t.Fatalf("less than min length should not be compress")
-		}
+		assert.Nil(err)
+		assert.Equal(c.BodyBuffer.Bytes(), body.Bytes())
+		assert.Empty(c.GetHeader(cod.HeaderContentEncoding))
 	})
 
 	t.Run("image should not be compress", func(t *testing.T) {
-		fn := New(Config{})
+		assert := assert.New(t)
+
+		fn := NewDefault()
 
 		req := httptest.NewRequest("GET", "/users/me", nil)
 		req.Header.Set(cod.HeaderAcceptEncoding, "gzip")
@@ -168,17 +176,15 @@ func TestCompress(t *testing.T) {
 		body := bytes.NewBufferString(randomString(4096))
 		c.BodyBuffer = body
 		err := fn(c)
-		if err != nil {
-			t.Fatalf("compress fail, %v", err)
-		}
-		if !bytes.Equal(c.BodyBuffer.Bytes(), body.Bytes()) ||
-			c.GetHeader(cod.HeaderContentEncoding) != "" {
-			t.Fatalf("image should not be compress")
-		}
+		assert.Nil(err)
+		assert.Equal(c.BodyBuffer.Bytes(), body.Bytes())
+		assert.Empty(c.GetHeader(cod.HeaderContentEncoding))
 	})
 
 	t.Run("not accept gzip should not compress", func(t *testing.T) {
-		fn := New(Config{})
+		assert := assert.New(t)
+
+		fn := NewDefault()
 
 		req := httptest.NewRequest("GET", "/users/me", nil)
 		resp := httptest.NewRecorder()
@@ -190,17 +196,13 @@ func TestCompress(t *testing.T) {
 		body := bytes.NewBufferString(randomString(4096))
 		c.BodyBuffer = body
 		err := fn(c)
-		if err != nil {
-			t.Fatalf("compress fail, %v", err)
-		}
-		if !bytes.Equal(c.BodyBuffer.Bytes(), body.Bytes()) ||
-			c.GetHeader(cod.HeaderContentEncoding) != "" {
-			t.Fatalf("not accept gzip should not be compress")
-		}
+		assert.Nil(err)
+		assert.Equal(c.BodyBuffer.Bytes(), body.Bytes())
+		assert.Empty(c.GetHeader(cod.HeaderContentEncoding))
 	})
 
 	t.Run("custom compress", func(t *testing.T) {
-
+		assert := assert.New(t)
 		compressorList := make([]Compressor, 0)
 		compressorList = append(compressorList, new(testCompressor))
 		fn := New(Config{
@@ -219,12 +221,26 @@ func TestCompress(t *testing.T) {
 			return nil
 		}
 		err := fn(c)
-		if err != nil || !done {
-			t.Fatalf("compress middleware fail, %v", err)
-		}
-		if c.BodyBuffer.Len() != 4 ||
-			c.GetHeader(cod.HeaderContentEncoding) != "br" {
-			t.Fatalf("custom compress fail")
-		}
+		assert.Nil(err)
+		assert.True(done)
+		assert.Equal(c.BodyBuffer.Len(), 4)
+		assert.Equal(c.GetHeader(cod.HeaderContentEncoding), "br")
 	})
+}
+
+// https://stackoverflow.com/questions/50120427/fail-unit-tests-if-coverage-is-below-certain-percentage
+func TestMain(m *testing.M) {
+	// call flag.Parse() here if TestMain uses flags
+	rc := m.Run()
+
+	// rc 0 means we've passed,
+	// and CoverMode will be non empty if run with -cover
+	if rc == 0 && testing.CoverMode() != "" {
+		c := testing.Coverage()
+		if c < 0.9 {
+			fmt.Println("Tests passed but coverage failed at", c)
+			rc = -1
+		}
+	}
+	os.Exit(rc)
 }
