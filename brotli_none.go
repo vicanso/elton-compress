@@ -35,3 +35,8 @@ func (b *BrCompressor) Accept(_ *cod.Context) (acceptable bool, encoding string)
 func (b *BrCompressor) Compress(buf []byte, level int) ([]byte, error) {
 	return nil, errors.New("not support brotli")
 }
+
+// Pipe brotli pipe
+func (b *BrCompressor) Pipe(c *cod.Context, level int) (err error) {
+	return errors.New("not support brotli")
+}

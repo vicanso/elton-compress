@@ -15,6 +15,8 @@
 package compress
 
 import (
+	"io"
+
 	"github.com/golang/snappy"
 	"github.com/vicanso/cod"
 )
@@ -38,4 +40,17 @@ func (s *SnappyCompressor) Compress(buf []byte, level int) ([]byte, error) {
 	var dst []byte
 	data := snappy.Encode(dst, buf)
 	return data, nil
+}
+
+// Pipe snappy pipe
+func (s *SnappyCompressor) Pipe(c *cod.Context, level int) (err error) {
+	r := c.Body.(io.Reader)
+	closer, ok := c.Body.(io.Closer)
+	if ok {
+		defer closer.Close()
+	}
+	w := snappy.NewBufferedWriter(c.Response)
+	defer w.Close()
+	_, err = io.Copy(w, r)
+	return
 }

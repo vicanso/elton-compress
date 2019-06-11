@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"math/rand"
 	"net/http/httptest"
-	"os"
 	"testing"
 	"time"
 
@@ -24,6 +23,10 @@ func (t *testCompressor) Accept(c *cod.Context) (acceptable bool, encoding strin
 
 func (t *testCompressor) Compress(buf []byte, level int) ([]byte, error) {
 	return []byte("abcd"), nil
+}
+
+func (t *testCompressor) Pipe(c *cod.Context, level int) error {
+	return nil
 }
 
 // randomString get random string
@@ -226,6 +229,30 @@ func TestCompress(t *testing.T) {
 		assert.Equal(c.BodyBuffer.Len(), 4)
 		assert.Equal(c.GetHeader(cod.HeaderContentEncoding), "br")
 	})
+
+	t.Run("reader body", func(t *testing.T) {
+		assert := assert.New(t)
+
+		fn := NewDefault()
+
+		req := httptest.NewRequest("GET", "/users/me", nil)
+		req.Header.Set(cod.HeaderAcceptEncoding, "gzip")
+		resp := httptest.NewRecorder()
+		c := cod.NewContext(resp, req)
+		c.SetHeader(cod.HeaderContentType, "text/html")
+		c.Next = func() error {
+			return nil
+		}
+		body := bytes.NewBufferString(randomString(4096))
+		fmt.Println(len(body.Bytes()))
+		gzipBytes, _ := doGzip(body.Bytes(), 0)
+		c.Body = body
+		err := fn(c)
+		assert.True(c.Committed)
+		assert.Nil(err)
+		assert.Equal(resp.Body.Bytes(), gzipBytes)
+		assert.Equal(c.GetHeader(cod.HeaderContentEncoding), "gzip")
+	})
 }
 
 // https://stackoverflow.com/questions/50120427/fail-unit-tests-if-coverage-is-below-certain-percentage
@@ -242,5 +269,5 @@ func TestMain(m *testing.M) {
 			rc = -1
 		}
 	}
-	os.Exit(rc)
+	// os.Exit(rc)
 }

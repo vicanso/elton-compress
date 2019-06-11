@@ -17,6 +17,8 @@
 package compress
 
 import (
+	"io"
+
 	"github.com/google/brotli/go/cbrotli"
 	"github.com/vicanso/cod"
 )
@@ -31,6 +33,16 @@ type (
 	BrCompressor struct{}
 )
 
+func getBrLevel(level int) int {
+	if level <= 0 {
+		level = 9
+	}
+	if level > maxQuality {
+		level = maxQuality
+	}
+	return level
+}
+
 // Accept check accept econding
 func (b *BrCompressor) Accept(c *cod.Context) (acceptable bool, encoding string) {
 	return AcceptEncoding(c, brEncoding)
@@ -38,14 +50,24 @@ func (b *BrCompressor) Accept(c *cod.Context) (acceptable bool, encoding string)
 
 // Compress brotli compress
 func (b *BrCompressor) Compress(buf []byte, level int) ([]byte, error) {
-	if level == 0 {
-		level = 9
-	}
-	if level > maxQuality {
-		level = maxQuality
-	}
 	return cbrotli.Encode(buf, cbrotli.WriterOptions{
-		Quality: level,
+		Quality: getBrLevel(level),
 		LGWin:   0,
 	})
+}
+
+// Pipe brotli pipe
+func (b *BrCompressor) Pipe(c *cod.Context, level int) (err error) {
+	r := c.Body.(io.Reader)
+	closer, ok := c.Body.(io.Closer)
+	if ok {
+		defer closer.Close()
+	}
+	w := cbrotli.NewWriter(c.Response, cbrotli.WriterOptions{
+		Quality: getBrLevel(level),
+		LGWin:   0,
+	})
+	defer w.Close()
+	_, err = io.Copy(w, r)
+	return
 }

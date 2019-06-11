@@ -36,6 +36,8 @@ type (
 		Accept(c *cod.Context) (acceptable bool, encoding string)
 		// Compress compress function
 		Compress([]byte, int) ([]byte, error)
+		// Pipe pipe function
+		Pipe(*cod.Context, int) error
 	}
 	// Config compress config
 	Config struct {
@@ -107,10 +109,9 @@ func New(config Config) cod.Handler {
 		if err != nil {
 			return
 		}
-
-		bodyBuf := c.BodyBuffer
-		// 如果数据为空，直接跳过
-		if bodyBuf == nil {
+		isReaderBody := c.IsReaderBody()
+		// 如果数据为空，而且body不是reader，直接跳过
+		if c.BodyBuffer == nil && !isReaderBody {
 			return
 		}
 
@@ -119,10 +120,20 @@ func New(config Config) cod.Handler {
 			return
 		}
 		contentType := c.GetHeader(cod.HeaderContentType)
-		buf := bodyBuf.Bytes()
-		// 如果数据长度少于最小压缩长度或数据类型为非可压缩，则返回
-		if len(buf) < minLength || !checker.MatchString(contentType) {
+		// 数据类型为非可压缩，则返回
+		if !checker.MatchString(contentType) {
 			return
+		}
+
+		var body []byte
+		if c.BodyBuffer != nil {
+			body = c.BodyBuffer.Bytes()
+		}
+		if !isReaderBody {
+			// 如果数据长度少于最小压缩长度或
+			if len(body) < minLength {
+				return
+			}
 		}
 
 		for _, compressor := range compressorList {
@@ -130,14 +141,21 @@ func New(config Config) cod.Handler {
 			if !acceptable {
 				continue
 			}
-			newBuf, e := compressor.Compress(buf, config.Level)
-			// 如果压缩成功，则使用压缩数据
-			// 失败则忽略
-			if e == nil {
+			if isReaderBody {
 				c.SetHeader(cod.HeaderContentEncoding, encoding)
-				bodyBuf.Reset()
-				bodyBuf.Write(newBuf)
-				break
+				// pipe 将数据直接转至原有的Response，因此设置committed为true
+				c.Committed = true
+				compressor.Pipe(c, config.Level)
+			} else {
+				newBuf, e := compressor.Compress(body, config.Level)
+				// 如果压缩成功，则使用压缩数据
+				// 失败则忽略
+				if e == nil {
+					c.SetHeader(cod.HeaderContentEncoding, encoding)
+					c.BodyBuffer.Reset()
+					c.BodyBuffer.Write(newBuf)
+					break
+				}
 			}
 		}
 		return
