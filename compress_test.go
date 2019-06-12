@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"math/rand"
 	"net/http/httptest"
+	"os"
 	"testing"
 	"time"
 
@@ -157,6 +158,7 @@ func TestCompress(t *testing.T) {
 		}
 		body := bytes.NewBufferString("abcd")
 		c.BodyBuffer = body
+		c.SetHeader(cod.HeaderContentType, "text/plain")
 		err := fn(c)
 		assert.Nil(err)
 		assert.Equal(c.BodyBuffer.Bytes(), body.Bytes())
@@ -244,7 +246,6 @@ func TestCompress(t *testing.T) {
 			return nil
 		}
 		body := bytes.NewBufferString(randomString(4096))
-		fmt.Println(len(body.Bytes()))
 		gzipBytes, _ := doGzip(body.Bytes(), 0)
 		c.Body = body
 		err := fn(c)
@@ -264,10 +265,10 @@ func TestMain(m *testing.M) {
 	// and CoverMode will be non empty if run with -cover
 	if rc == 0 && testing.CoverMode() != "" {
 		c := testing.Coverage()
-		if c < 0.9 {
+		if c < 0.85 {
 			fmt.Println("Tests passed but coverage failed at", c)
 			rc = -1
 		}
 	}
-	// os.Exit(rc)
+	os.Exit(rc)
 }

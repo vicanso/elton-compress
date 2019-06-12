@@ -26,7 +26,7 @@ var (
 )
 
 const (
-	defaultCompresMinLength = 1024
+	defaultCompressMinLength = 1024
 )
 
 type (
@@ -75,7 +75,8 @@ func NewWithDefaultCompressor(config Config) cod.Handler {
 	// 添加默认的 brotli 压缩
 	br := new(BrCompressor)
 	_, err := br.Compress([]byte("brotli"), 0)
-	if err != nil {
+	// 如果可以压缩成功，则添加 br 压缩
+	if err == nil {
 		compressorList = append(compressorList, br)
 	}
 
@@ -90,7 +91,7 @@ func NewWithDefaultCompressor(config Config) cod.Handler {
 func New(config Config) cod.Handler {
 	minLength := config.MinLength
 	if minLength == 0 {
-		minLength = defaultCompresMinLength
+		minLength = defaultCompressMinLength
 	}
 	skipper := config.Skipper
 	if skipper == nil {
@@ -130,7 +131,7 @@ func New(config Config) cod.Handler {
 			body = c.BodyBuffer.Bytes()
 		}
 		if !isReaderBody {
-			// 如果数据长度少于最小压缩长度或
+			// 如果数据长度少于最小压缩长度
 			if len(body) < minLength {
 				return
 			}
@@ -143,9 +144,14 @@ func New(config Config) cod.Handler {
 			}
 			if isReaderBody {
 				c.SetHeader(cod.HeaderContentEncoding, encoding)
+				err = compressor.Pipe(c, config.Level)
+				if err != nil {
+					return
+				}
 				// pipe 将数据直接转至原有的Response，因此设置committed为true
 				c.Committed = true
-				compressor.Pipe(c, config.Level)
+				// 清除 reader body
+				c.Body = nil
 			} else {
 				newBuf, e := compressor.Compress(body, config.Level)
 				// 如果压缩成功，则使用压缩数据
