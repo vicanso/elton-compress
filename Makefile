@@ -13,7 +13,7 @@ test-cover:
 	go test -race -coverprofile=test.out ./... && go tool cover --html=test.out
 
 bench:
-	go test -bench=. ./...
+	go test -tags brotli -bench=. ./...
 
 release:
 	go mod tidy

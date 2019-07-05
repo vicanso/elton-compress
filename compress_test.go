@@ -51,7 +51,7 @@ func TestAcceptEncoding(t *testing.T) {
 	c.SetRequestHeader(cod.HeaderAcceptEncoding, cod.Gzip)
 	acceptable, encoding = AcceptEncoding(c, cod.Gzip)
 	assert.True(acceptable)
-	assert.Equal(encoding, cod.Gzip)
+	assert.Equal(cod.Gzip, encoding)
 }
 
 func TestCompress(t *testing.T) {
@@ -125,7 +125,7 @@ func TestCompress(t *testing.T) {
 		assert.Nil(err)
 		assert.True(done)
 		assert.True(c.BodyBuffer.Len() < originalSize)
-		assert.Equal(c.GetHeader(cod.HeaderContentEncoding), "gzip")
+		assert.Equal(cod.Gzip, c.GetHeader(cod.HeaderContentEncoding))
 	})
 
 	t.Run("encoding done", func(t *testing.T) {
@@ -142,7 +142,7 @@ func TestCompress(t *testing.T) {
 		c.SetHeader(cod.HeaderContentEncoding, "gzip")
 		err := fn(c)
 		assert.Nil(err)
-		assert.Equal(c.BodyBuffer.Bytes(), body.Bytes())
+		assert.Equal(body.Bytes(), c.BodyBuffer.Bytes())
 	})
 
 	t.Run("body size is less than min length", func(t *testing.T) {
@@ -161,7 +161,7 @@ func TestCompress(t *testing.T) {
 		c.SetHeader(cod.HeaderContentType, "text/plain")
 		err := fn(c)
 		assert.Nil(err)
-		assert.Equal(c.BodyBuffer.Bytes(), body.Bytes())
+		assert.Equal(body.Bytes(), c.BodyBuffer.Bytes())
 		assert.Empty(c.GetHeader(cod.HeaderContentEncoding))
 	})
 
@@ -182,7 +182,7 @@ func TestCompress(t *testing.T) {
 		c.BodyBuffer = body
 		err := fn(c)
 		assert.Nil(err)
-		assert.Equal(c.BodyBuffer.Bytes(), body.Bytes())
+		assert.Equal(body.Bytes(), c.BodyBuffer.Bytes())
 		assert.Empty(c.GetHeader(cod.HeaderContentEncoding))
 	})
 
@@ -202,7 +202,7 @@ func TestCompress(t *testing.T) {
 		c.BodyBuffer = body
 		err := fn(c)
 		assert.Nil(err)
-		assert.Equal(c.BodyBuffer.Bytes(), body.Bytes())
+		assert.Equal(body.Bytes(), c.BodyBuffer.Bytes())
 		assert.Empty(c.GetHeader(cod.HeaderContentEncoding))
 	})
 
@@ -228,8 +228,8 @@ func TestCompress(t *testing.T) {
 		err := fn(c)
 		assert.Nil(err)
 		assert.True(done)
-		assert.Equal(c.BodyBuffer.Len(), 4)
-		assert.Equal(c.GetHeader(cod.HeaderContentEncoding), "br")
+		assert.Equal(4, c.BodyBuffer.Len())
+		assert.Equal("br", c.GetHeader(cod.HeaderContentEncoding))
 	})
 
 	t.Run("reader body", func(t *testing.T) {
@@ -251,8 +251,8 @@ func TestCompress(t *testing.T) {
 		err := fn(c)
 		assert.True(c.Committed)
 		assert.Nil(err)
-		assert.Equal(resp.Body.Bytes(), gzipBytes)
-		assert.Equal(c.GetHeader(cod.HeaderContentEncoding), "gzip")
+		assert.Equal(gzipBytes, resp.Body.Bytes())
+		assert.Equal(cod.Gzip, c.GetHeader(cod.HeaderContentEncoding))
 	})
 }
 

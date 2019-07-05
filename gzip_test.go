@@ -30,14 +30,14 @@ func TestGzipCompress(t *testing.T) {
 	c := cod.NewContext(nil, req)
 	acceptable, encoding := g.Accept(c)
 	assert.True(acceptable)
-	assert.Equal(encoding, gzipEncoding)
+	assert.Equal(gzipEncoding, encoding)
 	buf, err := g.Compress([]byte(originalData), 0)
 	assert.Nil(err)
 	r, err := gzip.NewReader(bytes.NewBuffer(buf))
 	assert.Nil(err)
 	defer r.Close()
 	originlBuf, _ := ioutil.ReadAll(r)
-	assert.Equal(string(originlBuf), originalData)
+	assert.Equal(originalData, string(originlBuf))
 }
 
 // doGunzip gunzip
@@ -65,5 +65,5 @@ func TestGzipPipe(t *testing.T) {
 	assert.Nil(err)
 	defer r.Close()
 	buf, _ := ioutil.ReadAll(r)
-	assert.Equal(string(buf), originalData)
+	assert.Equal(originalData, string(buf))
 }

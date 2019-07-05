@@ -29,7 +29,7 @@ func TestSnappyCompress(t *testing.T) {
 	var originalBuf []byte
 	originalBuf, err = snappy.Decode(originalBuf, buf)
 	assert.Nil(err)
-	assert.Equal(string(originalBuf), originalData)
+	assert.Equal(originalData, string(originalBuf))
 }
 
 func TestSnappyPipe(t *testing.T) {
@@ -47,5 +47,5 @@ func TestSnappyPipe(t *testing.T) {
 
 	r := snappy.NewReader(resp.Body)
 	buf, _ := ioutil.ReadAll(r)
-	assert.Equal(string(buf), originalData)
+	assert.Equal(originalData, string(buf))
 }
