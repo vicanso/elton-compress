@@ -18,7 +18,7 @@ import (
 	"io"
 
 	"github.com/golang/snappy"
-	"github.com/vicanso/cod"
+	"github.com/vicanso/elton"
 )
 
 const (
@@ -31,7 +31,7 @@ type (
 )
 
 // Accept check accept encoding
-func (s *SnappyCompressor) Accept(c *cod.Context) (acceptable bool, encoding string) {
+func (s *SnappyCompressor) Accept(c *elton.Context) (acceptable bool, encoding string) {
 	return AcceptEncoding(c, snappyEncoding)
 }
 
@@ -43,7 +43,7 @@ func (s *SnappyCompressor) Compress(buf []byte, level int) ([]byte, error) {
 }
 
 // Pipe snappy pipe
-func (s *SnappyCompressor) Pipe(c *cod.Context, level int) (err error) {
+func (s *SnappyCompressor) Pipe(c *elton.Context, level int) (err error) {
 	r := c.Body.(io.Reader)
 	closer, ok := c.Body.(io.Closer)
 	if ok {

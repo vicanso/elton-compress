@@ -9,7 +9,7 @@ import (
 
 	"github.com/google/brotli/go/cbrotli"
 	"github.com/stretchr/testify/assert"
-	"github.com/vicanso/cod"
+	"github.com/vicanso/elton"
 )
 
 func TestBrotliCompress(t *testing.T) {
@@ -18,7 +18,7 @@ func TestBrotliCompress(t *testing.T) {
 	originalData := randomString(1024)
 	req := httptest.NewRequest("GET", "/users/me", nil)
 	req.Header.Set("Accept-Encoding", "gzip, deflate, br")
-	c := cod.NewContext(nil, req)
+	c := elton.NewContext(nil, req)
 	acceptable, encoding := br.Accept(c)
 	assert.True(acceptable)
 	assert.Equal(brEncoding, encoding)
@@ -32,7 +32,7 @@ func TestBrotliPipe(t *testing.T) {
 	assert := assert.New(t)
 	resp := httptest.NewRecorder()
 	originalData := randomString(1024)
-	c := cod.NewContext(resp, nil)
+	c := elton.NewContext(resp, nil)
 
 	c.Body = bytes.NewReader([]byte(originalData))
 

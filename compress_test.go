@@ -11,14 +11,14 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/vicanso/cod"
+	"github.com/vicanso/elton"
 )
 
 var letterRunes = []rune("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_")
 
 type testCompressor struct{}
 
-func (t *testCompressor) Accept(c *cod.Context) (acceptable bool, encoding string) {
+func (t *testCompressor) Accept(c *elton.Context) (acceptable bool, encoding string) {
 	return AcceptEncoding(c, "br")
 }
 
@@ -26,7 +26,7 @@ func (t *testCompressor) Compress(buf []byte, level int) ([]byte, error) {
 	return []byte("abcd"), nil
 }
 
-func (t *testCompressor) Pipe(c *cod.Context, level int) error {
+func (t *testCompressor) Pipe(c *elton.Context, level int) error {
 	return nil
 }
 
@@ -43,28 +43,28 @@ func randomString(n int) string {
 func TestAcceptEncoding(t *testing.T) {
 	assert := assert.New(t)
 	req := httptest.NewRequest("GET", "/", nil)
-	c := cod.NewContext(nil, req)
-	acceptable, encoding := AcceptEncoding(c, cod.Gzip)
+	c := elton.NewContext(nil, req)
+	acceptable, encoding := AcceptEncoding(c, elton.Gzip)
 	assert.False(acceptable)
 	assert.Empty(encoding)
 
-	c.SetRequestHeader(cod.HeaderAcceptEncoding, cod.Gzip)
-	acceptable, encoding = AcceptEncoding(c, cod.Gzip)
+	c.SetRequestHeader(elton.HeaderAcceptEncoding, elton.Gzip)
+	acceptable, encoding = AcceptEncoding(c, elton.Gzip)
 	assert.True(acceptable)
-	assert.Equal(cod.Gzip, encoding)
+	assert.Equal(elton.Gzip, encoding)
 }
 
 func TestCompress(t *testing.T) {
 	t.Run("skip", func(t *testing.T) {
 		assert := assert.New(t)
-		c := cod.NewContext(nil, nil)
+		c := elton.NewContext(nil, nil)
 		done := false
 		c.Next = func() error {
 			done = true
 			return nil
 		}
 		fn := New(Config{
-			Skipper: func(c *cod.Context) bool {
+			Skipper: func(c *elton.Context) bool {
 				return true
 			},
 		})
@@ -75,7 +75,7 @@ func TestCompress(t *testing.T) {
 
 	t.Run("nil body", func(t *testing.T) {
 		assert := assert.New(t)
-		c := cod.NewContext(nil, nil)
+		c := elton.NewContext(nil, nil)
 		done := false
 		c.Next = func() error {
 			done = true
@@ -89,7 +89,7 @@ func TestCompress(t *testing.T) {
 
 	t.Run("return error", func(t *testing.T) {
 		assert := assert.New(t)
-		c := cod.NewContext(nil, nil)
+		c := elton.NewContext(nil, nil)
 		customErr := errors.New("abccd")
 		c.Next = func() error {
 			return customErr
@@ -110,10 +110,10 @@ func TestCompress(t *testing.T) {
 		})
 
 		req := httptest.NewRequest("GET", "/users/me", nil)
-		req.Header.Set(cod.HeaderAcceptEncoding, "gzip")
+		req.Header.Set(elton.HeaderAcceptEncoding, "gzip")
 		resp := httptest.NewRecorder()
-		c := cod.NewContext(resp, req)
-		c.SetHeader(cod.HeaderContentType, "text/html")
+		c := elton.NewContext(resp, req)
+		c.SetHeader(elton.HeaderContentType, "text/html")
 		c.BodyBuffer = bytes.NewBuffer([]byte("<html><body>" + randomString(8192) + "</body></html>"))
 		originalSize := c.BodyBuffer.Len()
 		done := false
@@ -125,7 +125,7 @@ func TestCompress(t *testing.T) {
 		assert.Nil(err)
 		assert.True(done)
 		assert.True(c.BodyBuffer.Len() < originalSize)
-		assert.Equal(cod.Gzip, c.GetHeader(cod.HeaderContentEncoding))
+		assert.Equal(elton.Gzip, c.GetHeader(elton.HeaderContentEncoding))
 	})
 
 	t.Run("encoding done", func(t *testing.T) {
@@ -133,13 +133,13 @@ func TestCompress(t *testing.T) {
 		fn := NewDefault()
 		req := httptest.NewRequest("GET", "/users/me", nil)
 		resp := httptest.NewRecorder()
-		c := cod.NewContext(resp, req)
+		c := elton.NewContext(resp, req)
 		c.Next = func() error {
 			return nil
 		}
 		body := bytes.NewBufferString(randomString(4096))
 		c.BodyBuffer = body
-		c.SetHeader(cod.HeaderContentEncoding, "gzip")
+		c.SetHeader(elton.HeaderContentEncoding, "gzip")
 		err := fn(c)
 		assert.Nil(err)
 		assert.Equal(body.Bytes(), c.BodyBuffer.Bytes())
@@ -150,19 +150,19 @@ func TestCompress(t *testing.T) {
 		fn := NewDefault()
 
 		req := httptest.NewRequest("GET", "/users/me", nil)
-		req.Header.Set(cod.HeaderAcceptEncoding, "gzip")
+		req.Header.Set(elton.HeaderAcceptEncoding, "gzip")
 		resp := httptest.NewRecorder()
-		c := cod.NewContext(resp, req)
+		c := elton.NewContext(resp, req)
 		c.Next = func() error {
 			return nil
 		}
 		body := bytes.NewBufferString("abcd")
 		c.BodyBuffer = body
-		c.SetHeader(cod.HeaderContentType, "text/plain")
+		c.SetHeader(elton.HeaderContentType, "text/plain")
 		err := fn(c)
 		assert.Nil(err)
 		assert.Equal(body.Bytes(), c.BodyBuffer.Bytes())
-		assert.Empty(c.GetHeader(cod.HeaderContentEncoding))
+		assert.Empty(c.GetHeader(elton.HeaderContentEncoding))
 	})
 
 	t.Run("image should not be compress", func(t *testing.T) {
@@ -171,10 +171,10 @@ func TestCompress(t *testing.T) {
 		fn := NewDefault()
 
 		req := httptest.NewRequest("GET", "/users/me", nil)
-		req.Header.Set(cod.HeaderAcceptEncoding, "gzip")
+		req.Header.Set(elton.HeaderAcceptEncoding, "gzip")
 		resp := httptest.NewRecorder()
-		c := cod.NewContext(resp, req)
-		c.SetHeader(cod.HeaderContentType, "image/jpeg")
+		c := elton.NewContext(resp, req)
+		c.SetHeader(elton.HeaderContentType, "image/jpeg")
 		c.Next = func() error {
 			return nil
 		}
@@ -183,7 +183,7 @@ func TestCompress(t *testing.T) {
 		err := fn(c)
 		assert.Nil(err)
 		assert.Equal(body.Bytes(), c.BodyBuffer.Bytes())
-		assert.Empty(c.GetHeader(cod.HeaderContentEncoding))
+		assert.Empty(c.GetHeader(elton.HeaderContentEncoding))
 	})
 
 	t.Run("not accept gzip should not compress", func(t *testing.T) {
@@ -193,8 +193,8 @@ func TestCompress(t *testing.T) {
 
 		req := httptest.NewRequest("GET", "/users/me", nil)
 		resp := httptest.NewRecorder()
-		c := cod.NewContext(resp, req)
-		c.SetHeader(cod.HeaderContentType, "text/html")
+		c := elton.NewContext(resp, req)
+		c.SetHeader(elton.HeaderContentType, "text/html")
 		c.Next = func() error {
 			return nil
 		}
@@ -203,7 +203,7 @@ func TestCompress(t *testing.T) {
 		err := fn(c)
 		assert.Nil(err)
 		assert.Equal(body.Bytes(), c.BodyBuffer.Bytes())
-		assert.Empty(c.GetHeader(cod.HeaderContentEncoding))
+		assert.Empty(c.GetHeader(elton.HeaderContentEncoding))
 	})
 
 	t.Run("custom compress", func(t *testing.T) {
@@ -217,8 +217,8 @@ func TestCompress(t *testing.T) {
 		req := httptest.NewRequest("GET", "/users/me", nil)
 		req.Header.Set("Accept-Encoding", "gzip, deflate, br")
 		resp := httptest.NewRecorder()
-		c := cod.NewContext(resp, req)
-		c.SetHeader(cod.HeaderContentType, "text/html")
+		c := elton.NewContext(resp, req)
+		c.SetHeader(elton.HeaderContentType, "text/html")
 		c.BodyBuffer = bytes.NewBufferString("<html><body>" + randomString(8192) + "</body></html>")
 		done := false
 		c.Next = func() error {
@@ -229,7 +229,7 @@ func TestCompress(t *testing.T) {
 		assert.Nil(err)
 		assert.True(done)
 		assert.Equal(4, c.BodyBuffer.Len())
-		assert.Equal("br", c.GetHeader(cod.HeaderContentEncoding))
+		assert.Equal("br", c.GetHeader(elton.HeaderContentEncoding))
 	})
 
 	t.Run("reader body", func(t *testing.T) {
@@ -238,10 +238,10 @@ func TestCompress(t *testing.T) {
 		fn := NewDefault()
 
 		req := httptest.NewRequest("GET", "/users/me", nil)
-		req.Header.Set(cod.HeaderAcceptEncoding, "gzip")
+		req.Header.Set(elton.HeaderAcceptEncoding, "gzip")
 		resp := httptest.NewRecorder()
-		c := cod.NewContext(resp, req)
-		c.SetHeader(cod.HeaderContentType, "text/html")
+		c := elton.NewContext(resp, req)
+		c.SetHeader(elton.HeaderContentType, "text/html")
 		c.Next = func() error {
 			return nil
 		}
@@ -252,7 +252,7 @@ func TestCompress(t *testing.T) {
 		assert.True(c.Committed)
 		assert.Nil(err)
 		assert.Equal(gzipBytes, resp.Body.Bytes())
-		assert.Equal(cod.Gzip, c.GetHeader(cod.HeaderContentEncoding))
+		assert.Equal(elton.Gzip, c.GetHeader(elton.HeaderContentEncoding))
 	})
 }
 

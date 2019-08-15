@@ -8,7 +8,7 @@ import (
 
 	"github.com/golang/snappy"
 	"github.com/stretchr/testify/assert"
-	"github.com/vicanso/cod"
+	"github.com/vicanso/elton"
 )
 
 func TestSnappyCompress(t *testing.T) {
@@ -18,7 +18,7 @@ func TestSnappyCompress(t *testing.T) {
 
 	req := httptest.NewRequest("GET", "/users/me", nil)
 	req.Header.Set("Accept-Encoding", snappyEncoding)
-	c := cod.NewContext(nil, req)
+	c := elton.NewContext(nil, req)
 	acceptable, encoding := s.Accept(c)
 	assert.True(acceptable)
 	assert.Equal(encoding, snappyEncoding)
@@ -36,7 +36,7 @@ func TestSnappyPipe(t *testing.T) {
 	assert := assert.New(t)
 	resp := httptest.NewRecorder()
 	originalData := randomString(1024)
-	c := cod.NewContext(resp, nil)
+	c := elton.NewContext(resp, nil)
 
 	c.Body = bytes.NewReader([]byte(originalData))
 

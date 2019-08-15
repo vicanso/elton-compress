@@ -18,7 +18,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/vicanso/cod"
+	"github.com/vicanso/elton"
 )
 
 var (
@@ -33,11 +33,11 @@ type (
 	// Compressor compressor interface
 	Compressor interface {
 		// Accept accept check function
-		Accept(c *cod.Context) (acceptable bool, encoding string)
+		Accept(c *elton.Context) (acceptable bool, encoding string)
 		// Compress compress function
 		Compress([]byte, int) ([]byte, error)
 		// Pipe pipe function
-		Pipe(*cod.Context, int) error
+		Pipe(*elton.Context, int) error
 	}
 	// Config compress config
 	Config struct {
@@ -50,13 +50,13 @@ type (
 		// CompressorList compressor list
 		CompressorList []Compressor
 		// Skipper skipper function
-		Skipper cod.Skipper
+		Skipper elton.Skipper
 	}
 )
 
 // AcceptEncoding check request accept encoding
-func AcceptEncoding(c *cod.Context, encoding string) (bool, string) {
-	acceptEncoding := c.GetRequestHeader(cod.HeaderAcceptEncoding)
+func AcceptEncoding(c *elton.Context, encoding string) (bool, string) {
+	acceptEncoding := c.GetRequestHeader(elton.HeaderAcceptEncoding)
 	if strings.Contains(acceptEncoding, encoding) {
 		return true, encoding
 	}
@@ -64,12 +64,12 @@ func AcceptEncoding(c *cod.Context, encoding string) (bool, string) {
 }
 
 // NewDefault create a default compress middleware, support gzip
-func NewDefault() cod.Handler {
+func NewDefault() elton.Handler {
 	return NewWithDefaultCompressor(Config{})
 }
 
 // NewWithDefaultCompressor create compress middleware with default compressor
-func NewWithDefaultCompressor(config Config) cod.Handler {
+func NewWithDefaultCompressor(config Config) elton.Handler {
 	compressorList := make([]Compressor, 0)
 
 	// 添加默认的 brotli 压缩
@@ -88,21 +88,21 @@ func NewWithDefaultCompressor(config Config) cod.Handler {
 }
 
 // New create a new compress middleware
-func New(config Config) cod.Handler {
+func New(config Config) elton.Handler {
 	minLength := config.MinLength
 	if minLength == 0 {
 		minLength = defaultCompressMinLength
 	}
 	skipper := config.Skipper
 	if skipper == nil {
-		skipper = cod.DefaultSkipper
+		skipper = elton.DefaultSkipper
 	}
 	checker := config.Checker
 	if checker == nil {
 		checker = defaultCompressRegexp
 	}
 	compressorList := config.CompressorList
-	return func(c *cod.Context) (err error) {
+	return func(c *elton.Context) (err error) {
 		if skipper(c) || compressorList == nil {
 			return c.Next()
 		}
@@ -117,10 +117,10 @@ func New(config Config) cod.Handler {
 		}
 
 		// encoding 不为空，已做处理，无需要压缩
-		if c.GetHeader(cod.HeaderContentEncoding) != "" {
+		if c.GetHeader(elton.HeaderContentEncoding) != "" {
 			return
 		}
-		contentType := c.GetHeader(cod.HeaderContentType)
+		contentType := c.GetHeader(elton.HeaderContentType)
 		// 数据类型为非可压缩，则返回
 		if !checker.MatchString(contentType) {
 			return
@@ -143,7 +143,7 @@ func New(config Config) cod.Handler {
 				continue
 			}
 			if isReaderBody {
-				c.SetHeader(cod.HeaderContentEncoding, encoding)
+				c.SetHeader(elton.HeaderContentEncoding, encoding)
 				err = compressor.Pipe(c, config.Level)
 				if err != nil {
 					return
@@ -157,7 +157,7 @@ func New(config Config) cod.Handler {
 				// 如果压缩成功，则使用压缩数据
 				// 失败则忽略
 				if e == nil {
-					c.SetHeader(cod.HeaderContentEncoding, encoding)
+					c.SetHeader(elton.HeaderContentEncoding, encoding)
 					c.BodyBuffer.Reset()
 					c.BodyBuffer.Write(newBuf)
 					break

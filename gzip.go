@@ -19,7 +19,7 @@ import (
 	"compress/gzip"
 	"io"
 
-	"github.com/vicanso/cod"
+	"github.com/vicanso/elton"
 )
 
 const (
@@ -32,7 +32,7 @@ type (
 )
 
 // Accept accept gzip encoding
-func (g *GzipCompressor) Accept(c *cod.Context) (acceptable bool, encoding string) {
+func (g *GzipCompressor) Accept(c *elton.Context) (acceptable bool, encoding string) {
 	return AcceptEncoding(c, gzipEncoding)
 }
 
@@ -52,7 +52,7 @@ func getGzipLevel(level int) int {
 }
 
 // Pipe compress by pipe
-func (g *GzipCompressor) Pipe(c *cod.Context, level int) (err error) {
+func (g *GzipCompressor) Pipe(c *elton.Context, level int) (err error) {
 	r := c.Body.(io.Reader)
 	closer, ok := c.Body.(io.Closer)
 	if ok {

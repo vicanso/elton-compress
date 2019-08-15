@@ -20,7 +20,7 @@ import (
 	"io"
 
 	"github.com/google/brotli/go/cbrotli"
-	"github.com/vicanso/cod"
+	"github.com/vicanso/elton"
 )
 
 const (
@@ -44,7 +44,7 @@ func getBrLevel(level int) int {
 }
 
 // Accept check accept econding
-func (b *BrCompressor) Accept(c *cod.Context) (acceptable bool, encoding string) {
+func (b *BrCompressor) Accept(c *elton.Context) (acceptable bool, encoding string) {
 	return AcceptEncoding(c, brEncoding)
 }
 
@@ -57,7 +57,7 @@ func (b *BrCompressor) Compress(buf []byte, level int) ([]byte, error) {
 }
 
 // Pipe brotli pipe
-func (b *BrCompressor) Pipe(c *cod.Context, level int) (err error) {
+func (b *BrCompressor) Pipe(c *elton.Context, level int) (err error) {
 	r := c.Body.(io.Reader)
 	closer, ok := c.Body.(io.Closer)
 	if ok {

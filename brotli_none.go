@@ -19,7 +19,7 @@ package compress
 import (
 	"errors"
 
-	"github.com/vicanso/cod"
+	"github.com/vicanso/elton"
 )
 
 type (
@@ -27,7 +27,7 @@ type (
 )
 
 // Accept just not accept all
-func (b *BrCompressor) Accept(_ *cod.Context) (acceptable bool, encoding string) {
+func (b *BrCompressor) Accept(_ *elton.Context) (acceptable bool, encoding string) {
 	return false, ""
 }
 
@@ -37,6 +37,6 @@ func (b *BrCompressor) Compress(buf []byte, level int) ([]byte, error) {
 }
 
 // Pipe brotli pipe
-func (b *BrCompressor) Pipe(c *cod.Context, level int) (err error) {
+func (b *BrCompressor) Pipe(c *elton.Context, level int) (err error) {
 	return errors.New("not support brotli")
 }

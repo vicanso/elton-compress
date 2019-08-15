@@ -8,7 +8,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/vicanso/cod"
+	"github.com/vicanso/elton"
 )
 
 func TestDoGzip(t *testing.T) {
@@ -27,7 +27,7 @@ func TestGzipCompress(t *testing.T) {
 	g := new(GzipCompressor)
 	req := httptest.NewRequest("GET", "/users/me", nil)
 	req.Header.Set("Accept-Encoding", "gzip, deflate, br")
-	c := cod.NewContext(nil, req)
+	c := elton.NewContext(nil, req)
 	acceptable, encoding := g.Accept(c)
 	assert.True(acceptable)
 	assert.Equal(gzipEncoding, encoding)
@@ -54,7 +54,7 @@ func TestGzipPipe(t *testing.T) {
 	assert := assert.New(t)
 	resp := httptest.NewRecorder()
 	originalData := randomString(1024)
-	c := cod.NewContext(resp, nil)
+	c := elton.NewContext(resp, nil)
 
 	c.Body = bytes.NewReader([]byte(originalData))
 
