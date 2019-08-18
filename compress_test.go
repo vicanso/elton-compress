@@ -101,13 +101,12 @@ func TestCompress(t *testing.T) {
 
 	t.Run("normal", func(t *testing.T) {
 		assert := assert.New(t)
-		compressorList := make([]Compressor, 0)
-		compressorList = append(compressorList, new(GzipCompressor))
-		fn := New(Config{
-			Level:          1,
-			MinLength:      1,
-			CompressorList: compressorList,
-		})
+		conf := Config{
+			Level:     1,
+			MinLength: 1,
+		}
+		conf.AddCompressor(new(GzipCompressor))
+		fn := New(conf)
 
 		req := httptest.NewRequest("GET", "/users/me", nil)
 		req.Header.Set(elton.HeaderAcceptEncoding, "gzip")
@@ -211,7 +210,7 @@ func TestCompress(t *testing.T) {
 		compressorList := make([]Compressor, 0)
 		compressorList = append(compressorList, new(testCompressor))
 		fn := New(Config{
-			CompressorList: compressorList,
+			Compressors: compressorList,
 		})
 
 		req := httptest.NewRequest("GET", "/users/me", nil)

@@ -47,8 +47,8 @@ type (
 		MinLength int
 		// Checker check the data is compressable
 		Checker *regexp.Regexp
-		// CompressorList compressor list
-		CompressorList []Compressor
+		// Compressors compressor list
+		Compressors []Compressor
 		// Skipper skipper function
 		Skipper elton.Skipper
 	}
@@ -63,6 +63,14 @@ func AcceptEncoding(c *elton.Context, encoding string) (bool, string) {
 	return false, ""
 }
 
+// AddCompressor add compressor
+func (conf *Config) AddCompressor(compressor Compressor) {
+	if conf.Compressors == nil {
+		conf.Compressors = make([]Compressor, 0)
+	}
+	conf.Compressors = append(conf.Compressors, compressor)
+}
+
 // NewDefault create a default compress middleware, support gzip
 func NewDefault() elton.Handler {
 	return NewWithDefaultCompressor(Config{})
@@ -70,19 +78,17 @@ func NewDefault() elton.Handler {
 
 // NewWithDefaultCompressor create compress middleware with default compressor
 func NewWithDefaultCompressor(config Config) elton.Handler {
-	compressorList := make([]Compressor, 0)
 
 	// 添加默认的 brotli 压缩
 	br := new(BrCompressor)
 	_, err := br.Compress([]byte("brotli"), 0)
 	// 如果可以压缩成功，则添加 br 压缩
 	if err == nil {
-		compressorList = append(compressorList, br)
+		config.AddCompressor(br)
 	}
 
 	// 添加默认的 gzip 压缩
-	compressorList = append(compressorList, new(GzipCompressor))
-	config.CompressorList = compressorList
+	config.AddCompressor(new(GzipCompressor))
 
 	return New(config)
 }
@@ -101,7 +107,7 @@ func New(config Config) elton.Handler {
 	if checker == nil {
 		checker = defaultCompressRegexp
 	}
-	compressorList := config.CompressorList
+	compressorList := config.Compressors
 	return func(c *elton.Context) (err error) {
 		if skipper(c) || compressorList == nil {
 			return c.Next()
