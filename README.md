@@ -2,12 +2,11 @@
 
 [![Build Status](https://img.shields.io/travis/vicanso/elton-compress.svg?label=linux+build)](https://travis-ci.org/vicanso/elton-compress)
 
-Compress middleware for elton, it support gzip compress function by default. For better performance, you can add more compress function such as [brotli](./brotli.md).
+Compress middleware for elton, it support gzip and br compress function by default. 
 
 - `BrCompressor` brotli compress is better for http, most modern browser support it.
 - `SnappyCompressor` snappy compress is fast, but not aim for maximum compression. It's useful for Intranet.
 
-If brotli compress is supported, build tags should add `brotli`.
 
 ```go
 package main
@@ -36,4 +35,15 @@ func main() {
 
 	d.ListenAndServe(":7001")
 }
+```
+
+## brotli
+
+I use [Pure Go Brotli](https://github.com/andybalholm/brotli) instead of cbrotli, it is a little slower. 
+
+Test for encode html(113K) to br:
+
+```bash
+BenchmarkCBrotli-8    	     200	   9555795 ns/op
+BenchmarkGoBrotli-8   	     100	  10703582 ns/op
 ```

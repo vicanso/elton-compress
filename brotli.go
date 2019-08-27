@@ -12,20 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License
 
-// +build brotli
-
 package compress
 
 import (
+	"bytes"
 	"io"
 
-	"github.com/google/brotli/go/cbrotli"
+	"github.com/andybalholm/brotli"
 	"github.com/vicanso/elton"
 )
 
 const (
-	brEncoding = "br"
-	maxQuality = 11
+	brEncoding       = "br"
+	maxBrQuality     = 11
+	defaultBrQuality = 6
 )
 
 type (
@@ -35,10 +35,10 @@ type (
 
 func getBrLevel(level int) int {
 	if level <= 0 {
-		level = 9
+		level = defaultBrQuality
 	}
-	if level > maxQuality {
-		level = maxQuality
+	if level > maxBrQuality {
+		level = maxBrQuality
 	}
 	return level
 }
@@ -50,10 +50,17 @@ func (b *BrCompressor) Accept(c *elton.Context) (acceptable bool, encoding strin
 
 // Compress brotli compress
 func (b *BrCompressor) Compress(buf []byte, level int) ([]byte, error) {
-	return cbrotli.Encode(buf, cbrotli.WriterOptions{
-		Quality: getBrLevel(level),
-		LGWin:   0,
-	})
+	buffer := new(bytes.Buffer)
+	w := brotli.NewWriterLevel(buffer, getBrLevel(level))
+	_, err := w.Write(buf)
+	if err != nil {
+		return nil, err
+	}
+	err = w.Close()
+	if err != nil {
+		return nil, err
+	}
+	return buffer.Bytes(), nil
 }
 
 // Pipe brotli pipe
@@ -63,10 +70,8 @@ func (b *BrCompressor) Pipe(c *elton.Context, level int) (err error) {
 	if ok {
 		defer closer.Close()
 	}
-	w := cbrotli.NewWriter(c.Response, cbrotli.WriterOptions{
-		Quality: getBrLevel(level),
-		LGWin:   0,
-	})
+	w := brotli.NewWriterLevel(c.Response, getBrLevel(level))
+
 	defer w.Close()
 	_, err = io.Copy(w, r)
 	return

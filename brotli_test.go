@@ -1,16 +1,20 @@
-// +build brotli
-
 package compress
 
 import (
 	"bytes"
+	"io/ioutil"
 	"net/http/httptest"
 	"testing"
 
-	"github.com/google/brotli/go/cbrotli"
+	"github.com/andybalholm/brotli"
 	"github.com/stretchr/testify/assert"
 	"github.com/vicanso/elton"
 )
+
+func decodeBrotli(buf []byte) ([]byte, error) {
+	r := brotli.NewReader(bytes.NewBuffer(buf))
+	return ioutil.ReadAll(r)
+}
 
 func TestBrotliCompress(t *testing.T) {
 	assert := assert.New(t)
@@ -24,7 +28,7 @@ func TestBrotliCompress(t *testing.T) {
 	assert.Equal(brEncoding, encoding)
 	buf, err := br.Compress([]byte(originalData), 0)
 	assert.Nil(err)
-	originalBuf, _ := cbrotli.Decode(buf)
+	originalBuf, _ := decodeBrotli(buf)
 	assert.Equal(originalData, string(originalBuf))
 }
 
@@ -39,6 +43,6 @@ func TestBrotliPipe(t *testing.T) {
 	br := new(BrCompressor)
 	err := br.Pipe(c, 0)
 	assert.Nil(err)
-	buf, _ := cbrotli.Decode(resp.Body.Bytes())
+	buf, _ := decodeBrotli(resp.Body.Bytes())
 	assert.Equal(originalData, string(buf))
 }
