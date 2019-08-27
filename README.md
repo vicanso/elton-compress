@@ -39,7 +39,7 @@ func main() {
 
 ## brotli
 
-I use [Pure Go Brotli](https://github.com/andybalholm/brotli) instead of cbrotli, it is a little slower. 
+I use [Pure Go Brotli](https://github.com/andybalholm/brotli) instead of cbrotli, it is a little bit slow. 
 
 Test for encode html(113K) to br:
 
