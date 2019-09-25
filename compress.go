@@ -143,13 +143,23 @@ func New(config Config) elton.Handler {
 			}
 		}
 
+		fillHeader := func(encoding string) {
+			c.SetHeader(elton.HeaderContentEncoding, encoding)
+			c.AddHeader("Vary", "Accept-Encoding")
+			etagValue := c.GetHeader(elton.HeaderETag)
+			// after compress, etag should be weak etag
+			if etagValue != "" && !strings.HasPrefix(etagValue, "W/") {
+				c.SetHeader(elton.HeaderETag, "W/"+etagValue)
+			}
+		}
+
 		for _, compressor := range compressorList {
 			acceptable, encoding := compressor.Accept(c)
 			if !acceptable {
 				continue
 			}
 			if isReaderBody {
-				c.SetHeader(elton.HeaderContentEncoding, encoding)
+				fillHeader(encoding)
 				err = compressor.Pipe(c, config.Level)
 				if err != nil {
 					return
@@ -163,7 +173,7 @@ func New(config Config) elton.Handler {
 				// 如果压缩成功，则使用压缩数据
 				// 失败则忽略
 				if e == nil {
-					c.SetHeader(elton.HeaderContentEncoding, encoding)
+					fillHeader(encoding)
 					c.BodyBuffer.Reset()
 					c.BodyBuffer.Write(newBuf)
 					break

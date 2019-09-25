@@ -231,6 +231,32 @@ func TestCompress(t *testing.T) {
 		assert.Equal("br", c.GetHeader(elton.HeaderContentEncoding))
 	})
 
+	t.Run("update etag", func(t *testing.T) {
+		assert := assert.New(t)
+		compressorList := make([]Compressor, 0)
+		compressorList = append(compressorList, new(GzipCompressor))
+		fn := New(Config{
+			Compressors: compressorList,
+		})
+
+		req := httptest.NewRequest("GET", "/users/me", nil)
+		req.Header.Set("Accept-Encoding", "gzip")
+		resp := httptest.NewRecorder()
+		c := elton.NewContext(resp, req)
+		c.SetHeader(elton.HeaderContentType, "text/html")
+		c.SetHeader(elton.HeaderETag, "123")
+		c.BodyBuffer = bytes.NewBufferString("<html><body>" + randomString(8192) + "</body></html>")
+		done := false
+		c.Next = func() error {
+			done = true
+			return nil
+		}
+		err := fn(c)
+		assert.Nil(err)
+		assert.True(done)
+		assert.Equal("W/123", c.GetHeader(elton.HeaderETag))
+	})
+
 	t.Run("reader body", func(t *testing.T) {
 		assert := assert.New(t)
 
