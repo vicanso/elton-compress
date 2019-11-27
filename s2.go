@@ -36,7 +36,7 @@ func (*S2Compressor) Accept(c *elton.Context) (acceptable bool, encoding string)
 }
 
 func s2IsBetterCompress(level int) bool {
-	if level == 0 || level > 3 {
+	if level == 0 || level > 2 {
 		return true
 	}
 	return false
