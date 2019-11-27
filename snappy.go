@@ -22,7 +22,7 @@ import (
 )
 
 const (
-	snappyEncoding = "sz"
+	snappyEncoding = "snz"
 )
 
 type (
