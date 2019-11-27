@@ -80,12 +80,7 @@ func NewDefault() elton.Handler {
 func NewWithDefaultCompressor(config Config) elton.Handler {
 
 	// 添加默认的 brotli 压缩
-	br := new(BrCompressor)
-	_, err := br.Compress([]byte("brotli"), 0)
-	// 如果可以压缩成功，则添加 br 压缩
-	if err == nil {
-		config.AddCompressor(br)
-	}
+	config.AddCompressor(new(BrCompressor))
 
 	// 添加默认的 gzip 压缩
 	config.AddCompressor(new(GzipCompressor))
