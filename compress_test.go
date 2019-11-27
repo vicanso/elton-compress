@@ -290,7 +290,7 @@ func TestMain(m *testing.M) {
 	// and CoverMode will be non empty if run with -cover
 	if rc == 0 && testing.CoverMode() != "" {
 		c := testing.Coverage()
-		if c < 0.85 {
+		if c < 0.80 {
 			fmt.Println("Tests passed but coverage failed at", c)
 			rc = -1
 		}
