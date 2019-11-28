@@ -23,7 +23,8 @@ import (
 )
 
 const (
-	lz4Encoding = "lz4"
+	// Lz4Encoding lz4 encoding
+	Lz4Encoding = "lz4"
 )
 
 type (
@@ -33,7 +34,7 @@ type (
 
 // Accept check accept encoding
 func (*Lz4Compressor) Accept(c *elton.Context) (acceptable bool, encoding string) {
-	return AcceptEncoding(c, lz4Encoding)
+	return AcceptEncoding(c, Lz4Encoding)
 }
 
 // Compress lz4 compress

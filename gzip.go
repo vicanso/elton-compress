@@ -23,7 +23,8 @@ import (
 )
 
 const (
-	gzipEncoding = "gzip"
+	// GzipEncoding gzip encoding
+	GzipEncoding = "gzip"
 )
 
 type (
@@ -33,7 +34,7 @@ type (
 
 // Accept accept gzip encoding
 func (g *GzipCompressor) Accept(c *elton.Context) (acceptable bool, encoding string) {
-	return AcceptEncoding(c, gzipEncoding)
+	return AcceptEncoding(c, GzipEncoding)
 }
 
 // Compress compress data by gzip

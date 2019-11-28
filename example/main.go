@@ -14,7 +14,13 @@ func main() {
 	compressConfig := compress.Config{
 		// 大于1KB的数据才做压缩
 		MinLength: 1024,
-		Level:     6,
+		Levels: map[string]int{
+			compress.GzipEncoding: 6,
+			compress.BrEncoding:   6,
+			compress.Lz4Encoding:  6,
+			compress.S2Encoding:   2,
+			compress.ZstdEncoding: 2,
+		},
 	}
 	// 需要注意添加的顺序，选择压缩是按添加的选择顺序选择适合的压缩方式
 	compressConfig.AddCompressor(new(compress.BrCompressor))

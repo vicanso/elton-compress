@@ -41,6 +41,9 @@ type (
 	}
 	// Config compress config
 	Config struct {
+		// Levels compress levels, if not set the level for encoding,
+		// it will use level config
+		Levels map[string]int
 		// Level compress level
 		Level int
 		// MinLength min compress length
@@ -153,9 +156,13 @@ func New(config Config) elton.Handler {
 			if !acceptable {
 				continue
 			}
+			level, ok := config.Levels[encoding]
+			if !ok {
+				level = config.Level
+			}
 			if isReaderBody {
 				fillHeader(encoding)
-				err = compressor.Pipe(c, config.Level)
+				err = compressor.Pipe(c, level)
 				if err != nil {
 					return
 				}
@@ -164,7 +171,7 @@ func New(config Config) elton.Handler {
 				// 清除 reader body
 				c.Body = nil
 			} else {
-				newBuf, e := compressor.Compress(body, config.Level)
+				newBuf, e := compressor.Compress(body, level)
 				// 如果压缩成功，则使用压缩数据
 				// 失败则忽略
 				if e == nil {

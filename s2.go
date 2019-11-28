@@ -22,7 +22,8 @@ import (
 )
 
 const (
-	s2Encoding = "s2"
+	// S2Encoding s2 encoding
+	S2Encoding = "s2"
 )
 
 type (
@@ -32,7 +33,7 @@ type (
 
 // Accept check accept encoding
 func (*S2Compressor) Accept(c *elton.Context) (acceptable bool, encoding string) {
-	return AcceptEncoding(c, s2Encoding)
+	return AcceptEncoding(c, S2Encoding)
 }
 
 func s2IsBetterCompress(level int) bool {

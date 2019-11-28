@@ -22,7 +22,8 @@ import (
 )
 
 const (
-	zstdEncoding = "zst"
+	// ZstdEncoding zstd encoding
+	ZstdEncoding = "zst"
 )
 
 type (
@@ -40,7 +41,7 @@ func getZstdEncoderLevel(level int) zstd.EncoderLevel {
 
 // Accept check accept encoding
 func (*ZstdCompressor) Accept(c *elton.Context) (acceptable bool, encoding string) {
-	return AcceptEncoding(c, zstdEncoding)
+	return AcceptEncoding(c, ZstdEncoding)
 }
 
 // Compress zstd compress

@@ -23,7 +23,8 @@ import (
 )
 
 const (
-	brEncoding       = "br"
+	// BrEncoding br encoding
+	BrEncoding       = "br"
 	maxBrQuality     = 11
 	defaultBrQuality = 6
 )
@@ -45,7 +46,7 @@ func getBrLevel(level int) int {
 
 // Accept check accept econding
 func (b *BrCompressor) Accept(c *elton.Context) (acceptable bool, encoding string) {
-	return AcceptEncoding(c, brEncoding)
+	return AcceptEncoding(c, BrEncoding)
 }
 
 // Compress brotli compress

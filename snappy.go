@@ -22,7 +22,8 @@ import (
 )
 
 const (
-	snappyEncoding = "snz"
+	// SnappyEncoding snappy encoding
+	SnappyEncoding = "snz"
 )
 
 type (
@@ -32,7 +33,7 @@ type (
 
 // Accept check accept encoding
 func (s *SnappyCompressor) Accept(c *elton.Context) (acceptable bool, encoding string) {
-	return AcceptEncoding(c, snappyEncoding)
+	return AcceptEncoding(c, SnappyEncoding)
 }
 
 // Compress snappy compress
