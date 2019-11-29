@@ -18,11 +18,11 @@ func TestLz4Compress(t *testing.T) {
 	z := new(Lz4Compressor)
 
 	req := httptest.NewRequest("GET", "/users/me", nil)
-	req.Header.Set("Accept-Encoding", lz4Encoding)
+	req.Header.Set("Accept-Encoding", Lz4Encoding)
 	c := elton.NewContext(nil, req)
 	acceptable, encoding := z.Accept(c)
 	assert.True(acceptable)
-	assert.Equal(encoding, lz4Encoding)
+	assert.Equal(encoding, Lz4Encoding)
 
 	buf, err := z.Compress([]byte(originalData), 0)
 	assert.Nil(err)

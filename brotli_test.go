@@ -25,7 +25,7 @@ func TestBrotliCompress(t *testing.T) {
 	c := elton.NewContext(nil, req)
 	acceptable, encoding := br.Accept(c)
 	assert.True(acceptable)
-	assert.Equal(brEncoding, encoding)
+	assert.Equal(BrEncoding, encoding)
 	buf, err := br.Compress([]byte(originalData), 0)
 	assert.Nil(err)
 	originalBuf, _ := decodeBrotli(buf)

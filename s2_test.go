@@ -17,11 +17,11 @@ func TestS2Compress(t *testing.T) {
 	s := new(S2Compressor)
 
 	req := httptest.NewRequest("GET", "/users/me", nil)
-	req.Header.Set("Accept-Encoding", s2Encoding)
+	req.Header.Set("Accept-Encoding", S2Encoding)
 	c := elton.NewContext(nil, req)
 	acceptable, encoding := s.Accept(c)
 	assert.True(acceptable)
-	assert.Equal(encoding, s2Encoding)
+	assert.Equal(encoding, S2Encoding)
 
 	buf, err := s.Compress([]byte(originalData), 0)
 	assert.Nil(err)

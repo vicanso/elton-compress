@@ -30,7 +30,7 @@ func TestGzipCompress(t *testing.T) {
 	c := elton.NewContext(nil, req)
 	acceptable, encoding := g.Accept(c)
 	assert.True(acceptable)
-	assert.Equal(gzipEncoding, encoding)
+	assert.Equal(GzipEncoding, encoding)
 	buf, err := g.Compress([]byte(originalData), 0)
 	assert.Nil(err)
 	r, err := gzip.NewReader(bytes.NewBuffer(buf))
