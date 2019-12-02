@@ -3,6 +3,7 @@ package compress
 import (
 	"fmt"
 	"io/ioutil"
+	"net/http"
 	"testing"
 )
 
@@ -11,7 +12,11 @@ var (
 )
 
 func init() {
-	buf, err := ioutil.ReadFile("./assets/index.html")
+	resp, err := http.Get("https://code.jquery.com/jquery-3.4.1.min.js")
+	if err != nil {
+		panic(err)
+	}
+	buf, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		panic(err)
 	}
