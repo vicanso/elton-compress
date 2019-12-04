@@ -46,5 +46,8 @@ func main() {
 		c.BodyBuffer = bytes.NewBuffer(buf)
 		return
 	})
-	e.ListenAndServe(":3000")
+	err := e.ListenAndServe(":3000")
+	if err != nil {
+		panic(err)
+	}
 }

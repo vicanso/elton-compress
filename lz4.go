@@ -44,6 +44,7 @@ func (*Lz4Compressor) Compress(buf []byte, level int) ([]byte, error) {
 	w.Header.CompressionLevel = level
 	_, err := w.Write(buf)
 	if err != nil {
+		w.Close()
 		return nil, err
 	}
 	err = w.Close()

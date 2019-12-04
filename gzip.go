@@ -72,6 +72,7 @@ func doGzip(buf []byte, level int) ([]byte, error) {
 	w, _ := gzip.NewWriterLevel(&b, getGzipLevel(level))
 	_, err := w.Write(buf)
 	if err != nil {
+		w.Close()
 		return nil, err
 	}
 	// close 必须主动close，因为后续直接从buffer中取出Bytes

@@ -15,6 +15,7 @@
 package compress
 
 import (
+	"bytes"
 	"regexp"
 	"strings"
 
@@ -176,8 +177,7 @@ func New(config Config) elton.Handler {
 				// 失败则忽略
 				if e == nil {
 					fillHeader(encoding)
-					c.BodyBuffer.Reset()
-					c.BodyBuffer.Write(newBuf)
+					c.BodyBuffer = bytes.NewBuffer(newBuf)
 					break
 				}
 			}

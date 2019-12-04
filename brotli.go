@@ -55,6 +55,7 @@ func (b *BrCompressor) Compress(buf []byte, level int) ([]byte, error) {
 	w := brotli.NewWriterLevel(buffer, getBrLevel(level))
 	_, err := w.Write(buf)
 	if err != nil {
+		w.Close()
 		return nil, err
 	}
 	err = w.Close()
