@@ -29,7 +29,9 @@ const (
 
 type (
 	// Lz4Compressor lz4 compress
-	Lz4Compressor struct{}
+	Lz4Compressor struct {
+		Level int
+	}
 )
 
 // Accept check accept encoding
@@ -38,31 +40,27 @@ func (*Lz4Compressor) Accept(c *elton.Context) (acceptable bool, encoding string
 }
 
 // Compress lz4 compress
-func (*Lz4Compressor) Compress(buf []byte, level int) ([]byte, error) {
-	var b bytes.Buffer
-	w := lz4.NewWriter(&b)
-	w.Header.CompressionLevel = level
+func (l *Lz4Compressor) Compress(buf []byte) (*bytes.Buffer, error) {
+	buffer := new(bytes.Buffer)
+	w := lz4.NewWriter(buffer)
+	defer w.Close()
+	w.Header.CompressionLevel = l.Level
 	_, err := w.Write(buf)
 	if err != nil {
-		w.Close()
 		return nil, err
 	}
-	err = w.Close()
-	if err != nil {
-		return nil, err
-	}
-	return b.Bytes(), nil
+	return buffer, nil
 }
 
 // Pipe lz4 pipe compress
-func (*Lz4Compressor) Pipe(c *elton.Context, level int) (err error) {
+func (l *Lz4Compressor) Pipe(c *elton.Context) (err error) {
 	r := c.Body.(io.Reader)
 	closer, ok := c.Body.(io.Closer)
 	if ok {
 		defer closer.Close()
 	}
 	w := lz4.NewWriter(c.Response)
-	w.Header.CompressionLevel = level
+	w.Header.CompressionLevel = l.Level
 	defer w.Close()
 	_, err = io.Copy(w, r)
 	return

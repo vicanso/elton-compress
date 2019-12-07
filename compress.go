@@ -36,9 +36,9 @@ type (
 		// Accept accept check function
 		Accept(c *elton.Context) (acceptable bool, encoding string)
 		// Compress compress function
-		Compress([]byte, int) ([]byte, error)
+		Compress([]byte) (*bytes.Buffer, error)
 		// Pipe pipe function
-		Pipe(*elton.Context, int) error
+		Pipe(*elton.Context) error
 	}
 	// Config compress config
 	Config struct {
@@ -157,13 +157,9 @@ func New(config Config) elton.Handler {
 			if !acceptable {
 				continue
 			}
-			level, ok := config.Levels[encoding]
-			if !ok {
-				level = config.Level
-			}
 			if isReaderBody {
 				fillHeader(encoding)
-				err = compressor.Pipe(c, level)
+				err = compressor.Pipe(c)
 				if err != nil {
 					return
 				}
@@ -172,12 +168,12 @@ func New(config Config) elton.Handler {
 				// 清除 reader body
 				c.Body = nil
 			} else {
-				newBuf, e := compressor.Compress(body, level)
+				newBuf, e := compressor.Compress(body)
 				// 如果压缩成功，则使用压缩数据
 				// 失败则忽略
 				if e == nil {
 					fillHeader(encoding)
-					c.BodyBuffer = bytes.NewBuffer(newBuf)
+					c.BodyBuffer = newBuf
 					break
 				}
 			}

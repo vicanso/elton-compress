@@ -15,6 +15,7 @@
 package compress
 
 import (
+	"bytes"
 	"io"
 
 	"github.com/klauspost/compress/s2"
@@ -28,7 +29,9 @@ const (
 
 type (
 	// S2Compressor s2 compressor
-	S2Compressor struct{}
+	S2Compressor struct {
+		Level int
+	}
 )
 
 // Accept check accept encoding
@@ -44,25 +47,25 @@ func s2IsBetterCompress(level int) bool {
 }
 
 // Compress s2 compress
-func (*S2Compressor) Compress(buf []byte, level int) ([]byte, error) {
+func (s *S2Compressor) Compress(buf []byte) (*bytes.Buffer, error) {
 	var dst []byte
 	fn := s2.Encode
-	if s2IsBetterCompress(level) {
+	if s2IsBetterCompress(s.Level) {
 		fn = s2.EncodeBetter
 	}
 	data := fn(dst, buf)
-	return data, nil
+	return bytes.NewBuffer(data), nil
 }
 
 // Pipe s2 pipe
-func (*S2Compressor) Pipe(c *elton.Context, level int) (err error) {
+func (s *S2Compressor) Pipe(c *elton.Context) (err error) {
 	r := c.Body.(io.Reader)
 	closer, ok := c.Body.(io.Closer)
 	if ok {
 		defer closer.Close()
 	}
 	var w *s2.Writer
-	if s2IsBetterCompress(level) {
+	if s2IsBetterCompress(s.Level) {
 		w = s2.NewWriter(c.Response, s2.WriterBetterCompression())
 	} else {
 		w = s2.NewWriter(c.Response)

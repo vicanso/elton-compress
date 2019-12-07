@@ -22,14 +22,14 @@ func TestZstdCompress(t *testing.T) {
 	assert.True(acceptable)
 	assert.Equal(encoding, ZstdEncoding)
 
-	buf, err := z.Compress([]byte(originalData), 0)
+	buf, err := z.Compress([]byte(originalData))
 	assert.Nil(err)
 	assert.NotEmpty(buf)
 
 	decorder, err := zstd.NewReader(nil)
 	assert.Nil(err)
 	var dst []byte
-	dst, err = decorder.DecodeAll(buf, dst)
+	dst, err = decorder.DecodeAll(buf.Bytes(), dst)
 	assert.Nil(err)
 	assert.Equal([]byte(originalData), dst)
 }
@@ -42,7 +42,7 @@ func TestZstdPipe(t *testing.T) {
 	c.Body = bytes.NewReader([]byte(originalData))
 
 	z := new(ZstdCompressor)
-	err := z.Pipe(c, 9)
+	err := z.Pipe(c)
 	assert.Nil(err)
 	assert.NotEmpty(resp.Body.Bytes())
 

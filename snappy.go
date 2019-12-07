@@ -15,6 +15,7 @@
 package compress
 
 import (
+	"bytes"
 	"io"
 
 	"github.com/golang/snappy"
@@ -28,7 +29,8 @@ const (
 
 type (
 	// SnappyCompressor snappy compress
-	SnappyCompressor struct{}
+	SnappyCompressor struct {
+	}
 )
 
 // Accept check accept encoding
@@ -37,14 +39,14 @@ func (s *SnappyCompressor) Accept(c *elton.Context) (acceptable bool, encoding s
 }
 
 // Compress snappy compress
-func (s *SnappyCompressor) Compress(buf []byte, level int) ([]byte, error) {
+func (s *SnappyCompressor) Compress(buf []byte) (*bytes.Buffer, error) {
 	var dst []byte
 	data := snappy.Encode(dst, buf)
-	return data, nil
+	return bytes.NewBuffer(data), nil
 }
 
 // Pipe snappy pipe
-func (s *SnappyCompressor) Pipe(c *elton.Context, level int) (err error) {
+func (s *SnappyCompressor) Pipe(c *elton.Context) (err error) {
 	r := c.Body.(io.Reader)
 	closer, ok := c.Body.(io.Closer)
 	if ok {

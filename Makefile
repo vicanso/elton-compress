@@ -11,3 +11,6 @@ test-cover:
 
 bench:
 	go test -bench=. ./...
+
+lint:
+	golangci-lint run

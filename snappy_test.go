@@ -23,11 +23,11 @@ func TestSnappyCompress(t *testing.T) {
 	assert.True(acceptable)
 	assert.Equal(encoding, SnappyEncoding)
 
-	buf, err := s.Compress([]byte(originalData), 0)
+	buf, err := s.Compress([]byte(originalData))
 	assert.Nil(err)
 	assert.NotEmpty(buf)
 	var originalBuf []byte
-	originalBuf, err = snappy.Decode(originalBuf, buf)
+	originalBuf, err = snappy.Decode(originalBuf, buf.Bytes())
 	assert.Nil(err)
 	assert.Equal(originalData, string(originalBuf))
 }
@@ -41,7 +41,7 @@ func TestSnappyPipe(t *testing.T) {
 	c.Body = bytes.NewReader([]byte(originalData))
 
 	s := new(SnappyCompressor)
-	err := s.Pipe(c, 0)
+	err := s.Pipe(c)
 	assert.Nil(err)
 	assert.NotEmpty(resp.Body.Bytes())
 

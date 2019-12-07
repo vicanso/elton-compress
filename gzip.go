@@ -29,7 +29,9 @@ const (
 
 type (
 	// GzipCompressor gzip compress
-	GzipCompressor struct{}
+	GzipCompressor struct {
+		Level int
+	}
 )
 
 // Accept accept gzip encoding
@@ -38,11 +40,21 @@ func (g *GzipCompressor) Accept(c *elton.Context) (acceptable bool, encoding str
 }
 
 // Compress compress data by gzip
-func (g *GzipCompressor) Compress(buf []byte, level int) ([]byte, error) {
-	return doGzip(buf, level)
+func (g *GzipCompressor) Compress(buf []byte) (*bytes.Buffer, error) {
+	level := g.getLevel()
+	buffer := new(bytes.Buffer)
+
+	w, _ := gzip.NewWriterLevel(buffer, level)
+	defer w.Close()
+	_, err := w.Write(buf)
+	if err != nil {
+		return nil, err
+	}
+	return buffer, nil
 }
 
-func getGzipLevel(level int) int {
+func (g *GzipCompressor) getLevel() int {
+	level := g.Level
 	if level <= 0 {
 		level = gzip.DefaultCompression
 	}
@@ -53,33 +65,14 @@ func getGzipLevel(level int) int {
 }
 
 // Pipe compress by pipe
-func (g *GzipCompressor) Pipe(c *elton.Context, level int) (err error) {
+func (g *GzipCompressor) Pipe(c *elton.Context) (err error) {
 	r := c.Body.(io.Reader)
 	closer, ok := c.Body.(io.Closer)
 	if ok {
 		defer closer.Close()
 	}
-	w, _ := gzip.NewWriterLevel(c.Response, getGzipLevel(level))
+	w, _ := gzip.NewWriterLevel(c.Response, g.getLevel())
 	defer w.Close()
 	_, err = io.Copy(w, r)
 	return
-}
-
-// doGzip 对数据压缩
-func doGzip(buf []byte, level int) ([]byte, error) {
-	var b bytes.Buffer
-
-	w, _ := gzip.NewWriterLevel(&b, getGzipLevel(level))
-	_, err := w.Write(buf)
-	if err != nil {
-		w.Close()
-		return nil, err
-	}
-	// close 必须主动close，因为后续直接从buffer中取出Bytes
-	// 如果使用defer，有可能导致数据未完整
-	err = w.Close()
-	if err != nil {
-		return nil, err
-	}
-	return b.Bytes(), nil
 }

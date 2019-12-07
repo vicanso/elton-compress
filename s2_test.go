@@ -23,11 +23,11 @@ func TestS2Compress(t *testing.T) {
 	assert.True(acceptable)
 	assert.Equal(encoding, S2Encoding)
 
-	buf, err := s.Compress([]byte(originalData), 0)
+	buf, err := s.Compress([]byte(originalData))
 	assert.Nil(err)
 	assert.NotEmpty(buf)
 	var originalBuf []byte
-	originalBuf, err = s2.Decode(originalBuf, buf)
+	originalBuf, err = s2.Decode(originalBuf, buf.Bytes())
 	assert.Nil(err)
 	assert.Equal(originalData, string(originalBuf))
 }
@@ -41,7 +41,7 @@ func TestS2Pipe(t *testing.T) {
 	c.Body = bytes.NewReader([]byte(originalData))
 
 	s := new(S2Compressor)
-	err := s.Pipe(c, 2)
+	err := s.Pipe(c)
 	assert.Nil(err)
 	assert.NotEmpty(resp.Body.Bytes())
 

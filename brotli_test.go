@@ -26,9 +26,9 @@ func TestBrotliCompress(t *testing.T) {
 	acceptable, encoding := br.Accept(c)
 	assert.True(acceptable)
 	assert.Equal(BrEncoding, encoding)
-	buf, err := br.Compress([]byte(originalData), 0)
+	buf, err := br.Compress([]byte(originalData))
 	assert.Nil(err)
-	originalBuf, _ := decodeBrotli(buf)
+	originalBuf, _ := decodeBrotli(buf.Bytes())
 	assert.Equal(originalData, string(originalBuf))
 }
 
@@ -41,7 +41,7 @@ func TestBrotliPipe(t *testing.T) {
 	c.Body = bytes.NewReader([]byte(originalData))
 
 	br := new(BrCompressor)
-	err := br.Pipe(c, 0)
+	err := br.Pipe(c)
 	assert.Nil(err)
 	buf, _ := decodeBrotli(resp.Body.Bytes())
 	assert.Equal(originalData, string(buf))

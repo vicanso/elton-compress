@@ -11,16 +11,6 @@ import (
 	"github.com/vicanso/elton"
 )
 
-func TestDoGzip(t *testing.T) {
-	assert := assert.New(t)
-	buf := []byte("abcd")
-	_, err := doGzip(buf, 0)
-	assert.Nil(err)
-
-	_, err = doGzip(buf, 100)
-	assert.Nil(err)
-}
-
 func TestGzipCompress(t *testing.T) {
 	assert := assert.New(t)
 	originalData := randomString(1024)
@@ -31,9 +21,9 @@ func TestGzipCompress(t *testing.T) {
 	acceptable, encoding := g.Accept(c)
 	assert.True(acceptable)
 	assert.Equal(GzipEncoding, encoding)
-	buf, err := g.Compress([]byte(originalData), 0)
+	buf, err := g.Compress([]byte(originalData))
 	assert.Nil(err)
-	r, err := gzip.NewReader(bytes.NewBuffer(buf))
+	r, err := gzip.NewReader(bytes.NewReader(buf.Bytes()))
 	assert.Nil(err)
 	defer r.Close()
 	originlBuf, _ := ioutil.ReadAll(r)
@@ -59,7 +49,7 @@ func TestGzipPipe(t *testing.T) {
 	c.Body = bytes.NewReader([]byte(originalData))
 
 	g := new(GzipCompressor)
-	err := g.Pipe(c, 0)
+	err := g.Pipe(c)
 	assert.Nil(err)
 	r, err := gzip.NewReader(resp.Body)
 	assert.Nil(err)

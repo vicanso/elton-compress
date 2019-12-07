@@ -31,10 +31,13 @@ const (
 
 type (
 	// BrCompressor brotli compress
-	BrCompressor struct{}
+	BrCompressor struct {
+		Level int
+	}
 )
 
-func getBrLevel(level int) int {
+func (b *BrCompressor) getLevel() int {
+	level := b.Level
 	if level <= 0 {
 		level = defaultBrQuality
 	}
@@ -50,29 +53,25 @@ func (b *BrCompressor) Accept(c *elton.Context) (acceptable bool, encoding strin
 }
 
 // Compress brotli compress
-func (b *BrCompressor) Compress(buf []byte, level int) ([]byte, error) {
+func (b *BrCompressor) Compress(buf []byte) (*bytes.Buffer, error) {
 	buffer := new(bytes.Buffer)
-	w := brotli.NewWriterLevel(buffer, getBrLevel(level))
+	w := brotli.NewWriterLevel(buffer, b.getLevel())
+	defer w.Close()
 	_, err := w.Write(buf)
 	if err != nil {
-		w.Close()
 		return nil, err
 	}
-	err = w.Close()
-	if err != nil {
-		return nil, err
-	}
-	return buffer.Bytes(), nil
+	return buffer, nil
 }
 
 // Pipe brotli pipe
-func (b *BrCompressor) Pipe(c *elton.Context, level int) (err error) {
+func (b *BrCompressor) Pipe(c *elton.Context) (err error) {
 	r := c.Body.(io.Reader)
 	closer, ok := c.Body.(io.Closer)
 	if ok {
 		defer closer.Close()
 	}
-	w := brotli.NewWriterLevel(c.Response, getBrLevel(level))
+	w := brotli.NewWriterLevel(c.Response, b.getLevel())
 
 	defer w.Close()
 	_, err = io.Copy(w, r)

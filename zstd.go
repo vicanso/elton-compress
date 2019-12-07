@@ -15,6 +15,7 @@
 package compress
 
 import (
+	"bytes"
 	"io"
 
 	"github.com/klauspost/compress/zstd"
@@ -28,10 +29,13 @@ const (
 
 type (
 	// ZstdCompressor zstd compress
-	ZstdCompressor struct{}
+	ZstdCompressor struct {
+		Level int
+	}
 )
 
-func getZstdEncoderLevel(level int) zstd.EncoderLevel {
+func (z *ZstdCompressor) getLevel() zstd.EncoderLevel {
+	level := z.Level
 	l := zstd.EncoderLevel(level)
 	if l < zstd.SpeedFastest || l > zstd.SpeedBestCompression {
 		return zstd.SpeedDefault
@@ -45,22 +49,23 @@ func (*ZstdCompressor) Accept(c *elton.Context) (acceptable bool, encoding strin
 }
 
 // Compress zstd compress
-func (*ZstdCompressor) Compress(buf []byte, level int) ([]byte, error) {
-	encoder, err := zstd.NewWriter(nil, zstd.WithEncoderLevel(getZstdEncoderLevel(level)))
+func (z *ZstdCompressor) Compress(buf []byte) (*bytes.Buffer, error) {
+	encoder, err := zstd.NewWriter(nil, zstd.WithEncoderLevel(z.getLevel()))
 	if err != nil {
 		return nil, err
 	}
-	return encoder.EncodeAll(buf, make([]byte, 0, len(buf))), nil
+	data := encoder.EncodeAll(buf, make([]byte, 0, len(buf)))
+	return bytes.NewBuffer(data), nil
 }
 
 // Pipe zstd pike
-func (*ZstdCompressor) Pipe(c *elton.Context, level int) (err error) {
+func (z *ZstdCompressor) Pipe(c *elton.Context) (err error) {
 	r := c.Body.(io.Reader)
 	closer, ok := c.Body.(io.Closer)
 	if ok {
 		defer closer.Close()
 	}
-	w, err := zstd.NewWriter(c.Response, zstd.WithEncoderLevel(getZstdEncoderLevel(level)))
+	w, err := zstd.NewWriter(c.Response, zstd.WithEncoderLevel(z.getLevel()))
 	if err != nil {
 		return err
 	}

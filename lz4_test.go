@@ -24,11 +24,11 @@ func TestLz4Compress(t *testing.T) {
 	assert.True(acceptable)
 	assert.Equal(encoding, Lz4Encoding)
 
-	buf, err := z.Compress([]byte(originalData), 0)
+	buf, err := z.Compress([]byte(originalData))
 	assert.Nil(err)
 	assert.NotEmpty(buf)
 
-	r := lz4.NewReader(bytes.NewReader(buf))
+	r := lz4.NewReader(buf)
 	dst, err := ioutil.ReadAll(r)
 	assert.Nil(err)
 	assert.Equal([]byte(originalData), dst)
@@ -42,7 +42,7 @@ func TestLz4Pipe(t *testing.T) {
 	c.Body = bytes.NewReader([]byte(originalData))
 
 	z := new(Lz4Compressor)
-	err := z.Pipe(c, 9)
+	err := z.Pipe(c)
 	assert.Nil(err)
 	assert.NotEmpty(resp.Body.Bytes())
 
