@@ -30,16 +30,6 @@ func TestGzipCompress(t *testing.T) {
 	assert.Equal(originalData, string(originlBuf))
 }
 
-// doGunzip gunzip
-func doGunzip(buf []byte) ([]byte, error) {
-	r, err := gzip.NewReader(bytes.NewBuffer(buf))
-	if err != nil {
-		return nil, err
-	}
-	defer r.Close()
-	return ioutil.ReadAll(r)
-}
-
 func TestGzipPipe(t *testing.T) {
 	assert := assert.New(t)
 	resp := httptest.NewRecorder()
