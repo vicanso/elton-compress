@@ -22,11 +22,11 @@ import (
 )
 
 func main() {
-	d := elton.New()
+	e := elton.New()
 
-	d.Use(compress.NewDefault())
+	e.Use(compress.NewDefault())
 
-	d.GET("/", func(c *elton.Context) (err error) {
+	e.GET("/", func(c *elton.Context) (err error) {
 		b := new(bytes.Buffer)
 		for i := 0; i < 1000; i++ {
 			b.WriteString("hello world\n")
@@ -36,7 +36,10 @@ func main() {
 		return
 	})
 
-	d.ListenAndServe(":7001")
+	err := e.ListenAndServe(":3000")
+	if err != nil {
+		panic(err)
+	}
 }
 ```
 
