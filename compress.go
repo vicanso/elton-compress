@@ -42,11 +42,6 @@ type (
 	}
 	// Config compress config
 	Config struct {
-		// Levels compress levels, if not set the level for encoding,
-		// it will use level config
-		Levels map[string]int
-		// Level compress level
-		Level int
 		// MinLength min compress length
 		MinLength int
 		// Checker check the data is compressable
