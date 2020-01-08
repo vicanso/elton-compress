@@ -102,7 +102,6 @@ func TestCompress(t *testing.T) {
 	t.Run("normal", func(t *testing.T) {
 		assert := assert.New(t)
 		conf := Config{
-			Level:     1,
 			MinLength: 1,
 		}
 		conf.AddCompressor(new(GzipCompressor))
