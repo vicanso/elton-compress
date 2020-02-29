@@ -155,22 +155,25 @@ func New(config Config) elton.Handler {
 			if isReaderBody {
 				fillHeader(encoding)
 				err = compressor.Pipe(c)
+				// 如果出错直接返回
 				if err != nil {
 					return
 				}
+				// 成功跳出循环
 				// pipe 将数据直接转至原有的Response，因此设置committed为true
 				c.Committed = true
 				// 清除 reader body
 				c.Body = nil
-			} else {
-				newBuf, e := compressor.Compress(body)
-				// 如果压缩成功，则使用压缩数据
-				// 失败则忽略
-				if e == nil {
-					fillHeader(encoding)
-					c.BodyBuffer = newBuf
-					break
-				}
+				break
+			}
+
+			newBuf, e := compressor.Compress(body)
+			// 如果压缩成功，则使用压缩数据
+			// 失败则忽略
+			if e == nil {
+				fillHeader(encoding)
+				c.BodyBuffer = newBuf
+				break
 			}
 		}
 		return
