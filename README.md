@@ -24,6 +24,7 @@ import (
 func main() {
 	e := elton.New()
 
+	// 默认为添加br与gzip两种压缩，适用于WEB应用
 	e.Use(compress.NewDefault())
 
 	e.GET("/", func(c *elton.Context) (err error) {

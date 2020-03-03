@@ -34,7 +34,7 @@ type (
 	// Compressor compressor interface
 	Compressor interface {
 		// Accept accept check function
-		Accept(c *elton.Context) (acceptable bool, encoding string)
+		Accept(c *elton.Context, bodySize int) (acceptable bool, encoding string)
 		// Compress compress function
 		Compress([]byte) (*bytes.Buffer, error)
 		// Pipe pipe function
@@ -42,8 +42,6 @@ type (
 	}
 	// Config compress config
 	Config struct {
-		// MinLength min compress length
-		MinLength int
 		// Checker check the data is compressable
 		Checker *regexp.Regexp
 		// Compressors compressor list
@@ -89,10 +87,6 @@ func NewWithDefaultCompressor(config Config) elton.Handler {
 
 // New create a new compress middleware
 func New(config Config) elton.Handler {
-	minLength := config.MinLength
-	if minLength == 0 {
-		minLength = defaultCompressMinLength
-	}
 	skipper := config.Skipper
 	if skipper == nil {
 		skipper = elton.DefaultSkipper
@@ -130,11 +124,11 @@ func New(config Config) elton.Handler {
 		if c.BodyBuffer != nil {
 			body = c.BodyBuffer.Bytes()
 		}
+		// 对于reader类，无法判断长度，认为长度为-1
+		bodySize := -1
 		if !isReaderBody {
 			// 如果数据长度少于最小压缩长度
-			if len(body) < minLength {
-				return
-			}
+			bodySize = len(body)
 		}
 
 		fillHeader := func(encoding string) {
@@ -148,7 +142,7 @@ func New(config Config) elton.Handler {
 		}
 
 		for _, compressor := range compressorList {
-			acceptable, encoding := compressor.Accept(c)
+			acceptable, encoding := compressor.Accept(c, bodySize)
 			if !acceptable {
 				continue
 			}

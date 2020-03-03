@@ -30,9 +30,17 @@ const (
 type (
 	// ZstdCompressor zstd compress
 	ZstdCompressor struct {
-		Level int
+		Level     int
+		MinLength int
 	}
 )
+
+func (z *ZstdCompressor) getMinLength() int {
+	if z.MinLength == 0 {
+		return defaultCompressMinLength
+	}
+	return z.MinLength
+}
 
 func (z *ZstdCompressor) getLevel() zstd.EncoderLevel {
 	level := z.Level
@@ -44,7 +52,11 @@ func (z *ZstdCompressor) getLevel() zstd.EncoderLevel {
 }
 
 // Accept check accept encoding
-func (*ZstdCompressor) Accept(c *elton.Context) (acceptable bool, encoding string) {
+func (z *ZstdCompressor) Accept(c *elton.Context, bodySize int) (acceptable bool, encoding string) {
+	// 如果数据少于最低压缩长度，则不压缩
+	if bodySize >= 0 && bodySize < z.getMinLength() {
+		return
+	}
 	return AcceptEncoding(c, ZstdEncoding)
 }
 

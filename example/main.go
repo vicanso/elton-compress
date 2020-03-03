@@ -11,17 +11,21 @@ import (
 
 func main() {
 	e := elton.New()
-	compressConfig := compress.Config{
-		// 大于1KB的数据才做压缩
+	compressConfig := compress.Config{}
+	br := &compress.BrCompressor{
 		MinLength: 1024,
 	}
+	lz4 := &compress.Lz4Compressor{
+		MinLength: 10 * 1024,
+	}
 	// 需要注意添加的顺序，选择压缩是按添加的选择顺序选择适合的压缩方式
-	compressConfig.AddCompressor(new(compress.BrCompressor))
+	// 此处只是示例所有的压缩器，正常使用时，按需使用1，2个压缩方式则可
+	compressConfig.AddCompressor(br)
 	compressConfig.AddCompressor(new(compress.GzipCompressor))
 	compressConfig.AddCompressor(new(compress.SnappyCompressor))
 	compressConfig.AddCompressor(new(compress.ZstdCompressor))
 	compressConfig.AddCompressor(new(compress.S2Compressor))
-	compressConfig.AddCompressor(new(compress.Lz4Compressor))
+	compressConfig.AddCompressor(lz4)
 
 	e.Use(compress.New(compressConfig))
 

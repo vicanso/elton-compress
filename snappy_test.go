@@ -19,7 +19,10 @@ func TestSnappyCompress(t *testing.T) {
 	req := httptest.NewRequest("GET", "/users/me", nil)
 	req.Header.Set("Accept-Encoding", SnappyEncoding)
 	c := elton.NewContext(nil, req)
-	acceptable, encoding := s.Accept(c)
+	acceptable, encoding := s.Accept(c, 0)
+	assert.False(acceptable)
+	assert.Empty(encoding)
+	acceptable, encoding = s.Accept(c, len(originalData))
 	assert.True(acceptable)
 	assert.Equal(encoding, SnappyEncoding)
 

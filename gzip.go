@@ -30,12 +30,17 @@ const (
 type (
 	// GzipCompressor gzip compress
 	GzipCompressor struct {
-		Level int
+		Level     int
+		MinLength int
 	}
 )
 
 // Accept accept gzip encoding
-func (g *GzipCompressor) Accept(c *elton.Context) (acceptable bool, encoding string) {
+func (g *GzipCompressor) Accept(c *elton.Context, bodySize int) (acceptable bool, encoding string) {
+	// 如果数据少于最低压缩长度，则不压缩
+	if bodySize >= 0 && bodySize < g.getMinLength() {
+		return
+	}
 	return AcceptEncoding(c, GzipEncoding)
 }
 
@@ -62,6 +67,13 @@ func (g *GzipCompressor) getLevel() int {
 		level = gzip.BestCompression
 	}
 	return level
+}
+
+func (g *GzipCompressor) getMinLength() int {
+	if g.MinLength == 0 {
+		return defaultCompressMinLength
+	}
+	return g.MinLength
 }
 
 // Pipe compress by pipe

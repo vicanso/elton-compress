@@ -30,12 +30,24 @@ const (
 type (
 	// Lz4Compressor lz4 compress
 	Lz4Compressor struct {
-		Level int
+		Level     int
+		MinLength int
 	}
 )
 
+func (l *Lz4Compressor) getMinLength() int {
+	if l.MinLength == 0 {
+		return defaultCompressMinLength
+	}
+	return l.MinLength
+}
+
 // Accept check accept encoding
-func (*Lz4Compressor) Accept(c *elton.Context) (acceptable bool, encoding string) {
+func (l *Lz4Compressor) Accept(c *elton.Context, bodySize int) (acceptable bool, encoding string) {
+	// 如果数据少于最低压缩长度，则不压缩
+	if bodySize >= 0 && bodySize < l.getMinLength() {
+		return
+	}
 	return AcceptEncoding(c, Lz4Encoding)
 }
 

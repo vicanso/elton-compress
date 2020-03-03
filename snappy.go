@@ -30,11 +30,23 @@ const (
 type (
 	// SnappyCompressor snappy compress
 	SnappyCompressor struct {
+		MinLength int
 	}
 )
 
+func (s *SnappyCompressor) getMinLength() int {
+	if s.MinLength == 0 {
+		return defaultCompressMinLength
+	}
+	return s.MinLength
+}
+
 // Accept check accept encoding
-func (s *SnappyCompressor) Accept(c *elton.Context) (acceptable bool, encoding string) {
+func (s *SnappyCompressor) Accept(c *elton.Context, bodySize int) (acceptable bool, encoding string) {
+	// 如果数据少于最低压缩长度，则不压缩
+	if bodySize >= 0 && bodySize < s.getMinLength() {
+		return
+	}
 	return AcceptEncoding(c, SnappyEncoding)
 }
 

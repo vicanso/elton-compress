@@ -18,7 +18,7 @@ var letterRunes = []rune("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz01
 
 type testCompressor struct{}
 
-func (t *testCompressor) Accept(c *elton.Context) (acceptable bool, encoding string) {
+func (t *testCompressor) Accept(c *elton.Context, bodySize int) (acceptable bool, encoding string) {
 	return AcceptEncoding(c, "br")
 }
 
@@ -101,10 +101,11 @@ func TestCompress(t *testing.T) {
 
 	t.Run("normal", func(t *testing.T) {
 		assert := assert.New(t)
-		conf := Config{
+		conf := Config{}
+		gz := &GzipCompressor{
 			MinLength: 1,
 		}
-		conf.AddCompressor(new(GzipCompressor))
+		conf.AddCompressor(gz)
 		fn := New(conf)
 
 		req := httptest.NewRequest("GET", "/users/me", nil)

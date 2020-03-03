@@ -30,12 +30,24 @@ const (
 type (
 	// S2Compressor s2 compressor
 	S2Compressor struct {
-		Level int
+		Level     int
+		MinLength int
 	}
 )
 
+func (s *S2Compressor) getMinLength() int {
+	if s.MinLength == 0 {
+		return defaultCompressMinLength
+	}
+	return s.MinLength
+}
+
 // Accept check accept encoding
-func (*S2Compressor) Accept(c *elton.Context) (acceptable bool, encoding string) {
+func (s *S2Compressor) Accept(c *elton.Context, bodySize int) (acceptable bool, encoding string) {
+	// 如果数据少于最低压缩长度，则不压缩
+	if bodySize >= 0 && bodySize < s.getMinLength() {
+		return
+	}
 	return AcceptEncoding(c, S2Encoding)
 }
 

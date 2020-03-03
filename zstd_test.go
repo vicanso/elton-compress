@@ -18,7 +18,7 @@ func TestZstdCompress(t *testing.T) {
 	req := httptest.NewRequest("GET", "/users/me", nil)
 	req.Header.Set("Accept-Encoding", ZstdEncoding)
 	c := elton.NewContext(nil, req)
-	acceptable, encoding := z.Accept(c)
+	acceptable, encoding := z.Accept(c, len(originalData))
 	assert.True(acceptable)
 	assert.Equal(encoding, ZstdEncoding)
 

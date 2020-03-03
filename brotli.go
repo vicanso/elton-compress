@@ -32,7 +32,8 @@ const (
 type (
 	// BrCompressor brotli compress
 	BrCompressor struct {
-		Level int
+		Level     int
+		MinLength int
 	}
 )
 
@@ -47,8 +48,19 @@ func (b *BrCompressor) getLevel() int {
 	return level
 }
 
+func (b *BrCompressor) getMinLength() int {
+	if b.MinLength == 0 {
+		return defaultCompressMinLength
+	}
+	return b.MinLength
+}
+
 // Accept check accept econding
-func (b *BrCompressor) Accept(c *elton.Context) (acceptable bool, encoding string) {
+func (b *BrCompressor) Accept(c *elton.Context, bodySize int) (acceptable bool, encoding string) {
+	// 如果数据少于最低压缩长度，则不压缩
+	if bodySize >= 0 && bodySize < b.getMinLength() {
+		return
+	}
 	return AcceptEncoding(c, BrEncoding)
 }
 
