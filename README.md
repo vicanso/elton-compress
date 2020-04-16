@@ -2,10 +2,9 @@
 
 [![Build Status](https://img.shields.io/travis/vicanso/elton-compress.svg?label=linux+build)](https://travis-ci.org/vicanso/elton-compress)
 
-Compress middleware for elton, it support gzip and br compress function by default. 
+More compressor for elton compress middleware.
 
 - `BrCompressor` Brotli compression algorithm is better for http, most modern browser support it. Compress level is 1-11，default 0(6).
-- `GzipComperssor` Gzip compression algorithm is most commonly used for http, all modern browser support it. Compress level is 1-9, default 0(6).
 - `SnappyCompressor` Snappy compression algorithm is fast, but not aim for maximum compression. It's useful for Intranet. Not support compress level.
 - `ZstdCompressor` Zstandard is a real-time compression algorithm, providing high compression ratios. Compress level is 1-2, default 0(2).
 - `S2Compressor` S2 is a high performance replacement for Snappy. Compress level is 1-2, default 0(2).
@@ -16,27 +15,46 @@ package main
 
 import (
 	"bytes"
+	"io/ioutil"
+	"net/http"
 
 	"github.com/vicanso/elton"
 	compress "github.com/vicanso/elton-compress"
+	"github.com/vicanso/elton/middleware"
 )
 
 func main() {
 	e := elton.New()
-
-	// 默认为添加br与gzip两种压缩，适用于WEB应用
-	e.Use(compress.NewDefault())
+	// 需要注意添加的顺序，选择压缩是按添加的选择顺序选择适合的压缩方式
+	// 此处只是示例所有的压缩器，正常使用时，按需使用1，2个压缩方式则可
+	config := middleware.NewCompressConfig(
+		&compress.BrCompressor{
+			MinLength: 1024,
+		},
+		new(middleware.GzipCompressor),
+		new(compress.SnappyCompressor),
+		new(compress.ZstdCompressor),
+		new(compress.S2Compressor),
+		&compress.Lz4Compressor{
+			MinLength: 10 * 1024,
+		},
+	)
+	e.Use(middleware.NewCompress(config))
 
 	e.GET("/", func(c *elton.Context) (err error) {
-		b := new(bytes.Buffer)
-		for i := 0; i < 1000; i++ {
-			b.WriteString("hello world\n")
+		resp, err := http.Get("https://code.jquery.com/jquery-3.4.1.min.js")
+		if err != nil {
+			return
 		}
-		c.SetHeader(elton.HeaderContentType, "text/plain; charset=utf-8")
-		c.BodyBuffer = b
+		defer resp.Body.Close()
+		buf, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return
+		}
+		c.SetContentTypeByExt(".js")
+		c.BodyBuffer = bytes.NewBuffer(buf)
 		return
 	})
-
 	err := e.ListenAndServe(":3000")
 	if err != nil {
 		panic(err)

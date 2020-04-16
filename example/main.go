@@ -7,27 +7,26 @@ import (
 
 	"github.com/vicanso/elton"
 	compress "github.com/vicanso/elton-compress"
+	"github.com/vicanso/elton/middleware"
 )
 
 func main() {
 	e := elton.New()
-	compressConfig := compress.Config{}
-	br := &compress.BrCompressor{
-		MinLength: 1024,
-	}
-	lz4 := &compress.Lz4Compressor{
-		MinLength: 10 * 1024,
-	}
 	// 需要注意添加的顺序，选择压缩是按添加的选择顺序选择适合的压缩方式
 	// 此处只是示例所有的压缩器，正常使用时，按需使用1，2个压缩方式则可
-	compressConfig.AddCompressor(br)
-	compressConfig.AddCompressor(new(compress.GzipCompressor))
-	compressConfig.AddCompressor(new(compress.SnappyCompressor))
-	compressConfig.AddCompressor(new(compress.ZstdCompressor))
-	compressConfig.AddCompressor(new(compress.S2Compressor))
-	compressConfig.AddCompressor(lz4)
-
-	e.Use(compress.New(compressConfig))
+	config := middleware.NewCompressConfig(
+		&compress.BrCompressor{
+			MinLength: 1024,
+		},
+		new(middleware.GzipCompressor),
+		new(compress.SnappyCompressor),
+		new(compress.ZstdCompressor),
+		new(compress.S2Compressor),
+		&compress.Lz4Compressor{
+			MinLength: 10 * 1024,
+		},
+	)
+	e.Use(middleware.NewCompress(config))
 
 	e.GET("/", func(c *elton.Context) (err error) {
 		resp, err := http.Get("https://code.jquery.com/jquery-3.4.1.min.js")
