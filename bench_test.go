@@ -34,7 +34,7 @@ var (
 )
 
 func init() {
-	resp, err := http.Get("https://code.jquery.com/jquery-3.4.1.min.js")
+	resp, err := http.Get("https://cdn.staticfile.org/jquery/3.4.1/jquery.min.js")
 	if err != nil {
 		panic(err)
 	}
@@ -51,10 +51,6 @@ func init() {
 	sn := new(SnappyCompressor)
 	snappyBuf, _ := sn.Compress(buf)
 	fmt.Println(fmt.Sprintf("snappy: %d bytes", snappyBuf.Len()))
-
-	s2 := new(S2Compressor)
-	s2Buf, _ := s2.Compress(buf)
-	fmt.Println(fmt.Sprintf("s2: %d bytes", s2Buf.Len()))
 
 	z := new(ZstdCompressor)
 	zBuf, _ := z.Compress(buf)
@@ -81,29 +77,6 @@ func BenchmarkSnappy(b *testing.B) {
 	sn := new(SnappyCompressor)
 	for i := 0; i < b.N; i++ {
 		_, err := sn.Compress(benchData)
-		if err != nil {
-			panic(err)
-		}
-	}
-}
-
-func BenchmarkS2(b *testing.B) {
-	b.ReportAllocs()
-	s2 := new(S2Compressor)
-	for i := 0; i < b.N; i++ {
-		_, err := s2.Compress(benchData)
-		if err != nil {
-			panic(err)
-		}
-	}
-}
-
-func BenchmarkS2Fast(b *testing.B) {
-	b.ReportAllocs()
-	s2 := new(S2Compressor)
-	s2.Level = 1
-	for i := 0; i < b.N; i++ {
-		_, err := s2.Compress(benchData)
 		if err != nil {
 			panic(err)
 		}

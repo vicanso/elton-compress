@@ -24,7 +24,6 @@ package compress
 
 import (
 	"bytes"
-	"io/ioutil"
 	"net/http/httptest"
 	"testing"
 
@@ -70,7 +69,8 @@ func TestSnappyPipe(t *testing.T) {
 	assert.Nil(err)
 	assert.NotEmpty(resp.Body.Bytes())
 
-	r := snappy.NewReader(resp.Body)
-	buf, _ := ioutil.ReadAll(r)
-	assert.Equal(originalData, string(buf))
+	var originalBuf []byte
+	originalBuf, err = snappy.Decode(originalBuf, resp.Body.Bytes())
+	assert.Nil(err)
+	assert.Equal(originalData, string(originalBuf))
 }

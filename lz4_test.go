@@ -24,7 +24,6 @@ package compress
 
 import (
 	"bytes"
-	"io/ioutil"
 	"net/http/httptest"
 	"testing"
 
@@ -34,9 +33,23 @@ import (
 	"github.com/vicanso/elton"
 )
 
+var compressTestData = []byte(`Brotli is a data format specification[2] for data streams compressed with a specific combination of the general-purpose LZ77 lossless compression algorithm, Huffman coding and 2nd order context modelling. Brotli is a compression algorithm developed by Google and works best for text compression.
+
+Google employees Jyrki Alakuijala and Zoltán Szabadka initially developed Brotli to decrease the size of transmissions of WOFF2 web fonts, and in that context Brotli was a continuation of the development of zopfli, which is a zlib-compatible implementation of the standard gzip and deflate specifications. Brotli allows a denser packing than gzip and deflate because of several algorithmic and format level improvements: the use of context models for literals and copy distances, describing copy distances through past distances, use of move-to-front queue in entropy code selection, joint-entropy coding of literal and copy lengths, the use of graph algorithms in block splitting, and a larger backward reference window are example improvements. The Brotli specification was generalized in September 2015 for HTTP stream compression (content-encoding type 'br'). This generalized iteration also improved the compression ratio by using a pre-defined dictionary of frequently used words and phrases.`)
+
+func doLZ4Decode(buf []byte) ([]byte, error) {
+	dst := make([]byte, 10*len(buf))
+	n, err := lz4.UncompressBlock(buf, dst)
+	if err != nil {
+		return nil, err
+	}
+	dst = dst[:n]
+	return dst, nil
+}
+
 func TestLz4Compress(t *testing.T) {
 	assert := assert.New(t)
-	originalData := randomString(1024)
+	originalData := compressTestData
 	z := new(Lz4Compressor)
 
 	req := httptest.NewRequest("GET", "/users/me", nil)
@@ -53,8 +66,7 @@ func TestLz4Compress(t *testing.T) {
 	assert.Nil(err)
 	assert.NotEmpty(buf)
 
-	r := lz4.NewReader(buf)
-	dst, err := ioutil.ReadAll(r)
+	dst, err := doLZ4Decode(buf.Bytes())
 	assert.Nil(err)
 	assert.Equal([]byte(originalData), dst)
 }
@@ -62,7 +74,7 @@ func TestLz4Compress(t *testing.T) {
 func TestLz4Pipe(t *testing.T) {
 	assert := assert.New(t)
 	resp := httptest.NewRecorder()
-	originalData := randomString(1024)
+	originalData := compressTestData
 	c := elton.NewContext(resp, nil)
 	c.Body = bytes.NewReader([]byte(originalData))
 
@@ -71,8 +83,7 @@ func TestLz4Pipe(t *testing.T) {
 	assert.Nil(err)
 	assert.NotEmpty(resp.Body.Bytes())
 
-	r := lz4.NewReader(resp.Body)
-	dst, err := ioutil.ReadAll(r)
+	dst, err := doLZ4Decode(resp.Body.Bytes())
 	assert.Nil(err)
 	assert.Equal([]byte(originalData), dst)
 }

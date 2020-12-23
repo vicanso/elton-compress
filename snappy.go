@@ -25,6 +25,7 @@ package compress
 import (
 	"bytes"
 	"io"
+	"io/ioutil"
 
 	"github.com/golang/snappy"
 	"github.com/vicanso/elton"
@@ -69,13 +70,20 @@ func (s *SnappyCompressor) Compress(buf []byte) (*bytes.Buffer, error) {
 
 // Pipe snappy pipe
 func (s *SnappyCompressor) Pipe(c *elton.Context) (err error) {
+	// 使用snappy时一次读取所有数据再压缩
 	r := c.Body.(io.Reader)
 	closer, ok := c.Body.(io.Closer)
 	if ok {
 		defer closer.Close()
 	}
-	w := snappy.NewBufferedWriter(c.Response)
-	defer w.Close()
-	_, err = io.Copy(w, r)
+	buf, err := ioutil.ReadAll(r)
+	if err != nil {
+		return
+	}
+	buffer, err := s.Compress(buf)
+	if err != nil {
+		return
+	}
+	_, err = c.Response.Write(buffer.Bytes())
 	return
 }

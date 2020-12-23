@@ -21,7 +21,6 @@ func main() {
 		new(middleware.GzipCompressor),
 		new(compress.SnappyCompressor),
 		new(compress.ZstdCompressor),
-		new(compress.S2Compressor),
 		&compress.Lz4Compressor{
 			MinLength: 10 * 1024,
 		},

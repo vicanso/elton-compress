@@ -24,7 +24,9 @@ package compress
 
 import (
 	"bytes"
+	"errors"
 	"io"
+	"io/ioutil"
 
 	"github.com/pierrec/lz4"
 	"github.com/vicanso/elton"
@@ -44,6 +46,8 @@ type (
 	}
 )
 
+var ErrLz4IsNotCompressible = errors.New("Is not compressible for lz4")
+
 func (l *Lz4Compressor) getMinLength() int {
 	if l.MinLength == 0 {
 		return middleware.DefaultCompressMinLength
@@ -62,27 +66,34 @@ func (l *Lz4Compressor) Accept(c *elton.Context, bodySize int) (acceptable bool,
 
 // Compress lz4 compress
 func (l *Lz4Compressor) Compress(buf []byte) (*bytes.Buffer, error) {
-	buffer := new(bytes.Buffer)
-	w := lz4.NewWriter(buffer)
-	defer w.Close()
-	w.Header.CompressionLevel = l.Level
-	_, err := w.Write(buf)
+	dst := make([]byte, len(buf))
+	n, err := lz4.CompressBlock(buf, dst, nil)
 	if err != nil {
 		return nil, err
 	}
-	return buffer, nil
+	if n == 0 {
+		return nil, ErrLz4IsNotCompressible
+	}
+	return bytes.NewBuffer(dst[:n]), nil
 }
 
 // Pipe lz4 pipe compress
 func (l *Lz4Compressor) Pipe(c *elton.Context) (err error) {
+	// 使用lz4时为了提升性能，还是使用compress block的方式
+	// 一次读取所有数据
 	r := c.Body.(io.Reader)
 	closer, ok := c.Body.(io.Closer)
 	if ok {
 		defer closer.Close()
 	}
-	w := lz4.NewWriter(c.Response)
-	w.Header.CompressionLevel = l.Level
-	defer w.Close()
-	_, err = io.Copy(w, r)
+	buf, err := ioutil.ReadAll(r)
+	if err != nil {
+		return
+	}
+	buffer, err := l.Compress(buf)
+	if err != nil {
+		return
+	}
+	_, err = c.Response.Write(buffer.Bytes())
 	return
 }

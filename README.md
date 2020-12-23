@@ -7,7 +7,6 @@ More compressor for elton compress middleware.
 - `BrCompressor` Brotli compression algorithm is better for http, most modern browser support it. Compress level is 1-11，default 0(6).
 - `SnappyCompressor` Snappy compression algorithm is fast, but not aim for maximum compression. It's useful for Intranet. Not support compress level.
 - `ZstdCompressor` Zstandard is a real-time compression algorithm, providing high compression ratios. Compress level is 1-2, default 0(2).
-- `S2Compressor` S2 is a high performance replacement for Snappy. Compress level is 1-2, default 0(2).
 - `Lz4Compressor` LZ4 is lossless compression algorithm, providing compression speed > 500 MB/s per core, scalable with multi-cores CPU. Compress level higher is better, use 0 for fastest compression.
 
 ```go
