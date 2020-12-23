@@ -46,19 +46,19 @@ func init() {
 
 	br := new(BrCompressor)
 	brBuf, _ := br.Compress(buf)
-	fmt.Println(fmt.Sprintf("br: %d bytes", brBuf.Len()))
+	fmt.Printf("br: %d bytes\n", brBuf.Len())
 
 	sn := new(SnappyCompressor)
 	snappyBuf, _ := sn.Compress(buf)
-	fmt.Println(fmt.Sprintf("snappy: %d bytes", snappyBuf.Len()))
+	fmt.Printf("snappy: %d bytes\n", snappyBuf.Len())
 
 	z := new(ZstdCompressor)
 	zBuf, _ := z.Compress(buf)
-	fmt.Println(fmt.Sprintf("zstd: %d bytes", zBuf.Len()))
+	fmt.Printf("zstd: %d bytes\n", zBuf.Len())
 
 	lz := new(Lz4Compressor)
 	lzBuf, _ := lz.Compress(buf)
-	fmt.Println(fmt.Sprintf("lz4: %d bytes", lzBuf.Len()))
+	fmt.Printf("lz4: %d bytes\n", lzBuf.Len())
 }
 
 func BenchmarkBr(b *testing.B) {
