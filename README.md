@@ -1,6 +1,7 @@
 # elton-compress
 
-[![Build Status](https://img.shields.io/travis/vicanso/elton-compress.svg?label=linux+build)](https://travis-ci.org/vicanso/elton-compress)
+[![license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/vicanso/elton-compress/blob/master/LICENSE)
+[![Build Status](https://github.com/vicanso/elton-compress/workflows/Test/badge.svg)](https://github.com/vicanso/elton-compress/actions)
 
 More compressor for elton compress middleware.
 
@@ -24,7 +25,7 @@ import (
 
 func main() {
 	e := elton.New()
-	// 需要注意添加的顺序，选择压缩是按添加的选择顺序选择适合的压缩方式
+	// 需要注意添加的顺序，压缩是按添加的选择顺序选择适合的压缩方式
 	// 此处只是示例所有的压缩器，正常使用时，按需使用1，2个压缩方式则可
 	config := middleware.NewCompressConfig(
 		&compress.BrCompressor{
