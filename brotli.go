@@ -77,8 +77,12 @@ func (b *BrCompressor) Accept(c *elton.Context, bodySize int) (acceptable bool, 
 func (b *BrCompressor) Compress(buf []byte) (*bytes.Buffer, error) {
 	buffer := new(bytes.Buffer)
 	w := brotli.NewWriterLevel(buffer, b.getLevel())
-	defer w.Close()
 	_, err := w.Write(buf)
+	if err != nil {
+		return nil, err
+	}
+	// 直接调用close触发数据的flush
+	err = w.Close()
 	if err != nil {
 		return nil, err
 	}
