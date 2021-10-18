@@ -74,9 +74,13 @@ func (b *BrCompressor) Accept(c *elton.Context, bodySize int) (acceptable bool, 
 }
 
 // Compress brotli compress
-func (b *BrCompressor) Compress(buf []byte) (*bytes.Buffer, error) {
+func (b *BrCompressor) Compress(buf []byte, levels ...int) (*bytes.Buffer, error) {
+	level := b.getLevel()
+	if len(levels) != 0 && levels[0] != middleware.IgnoreCompression {
+		level = levels[0]
+	}
 	buffer := new(bytes.Buffer)
-	w := brotli.NewWriterLevel(buffer, b.getLevel())
+	w := brotli.NewWriterLevel(buffer, level)
 	_, err := w.Write(buf)
 	if err != nil {
 		return nil, err

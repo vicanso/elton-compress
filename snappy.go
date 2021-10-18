@@ -62,7 +62,7 @@ func (s *SnappyCompressor) Accept(c *elton.Context, bodySize int) (acceptable bo
 }
 
 // Compress snappy compress
-func (s *SnappyCompressor) Compress(buf []byte) (*bytes.Buffer, error) {
+func (s *SnappyCompressor) Compress(buf []byte, levels ...int) (*bytes.Buffer, error) {
 	var dst []byte
 	data := snappy.Encode(dst, buf)
 	return bytes.NewBuffer(data), nil

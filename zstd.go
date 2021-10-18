@@ -70,8 +70,12 @@ func (z *ZstdCompressor) Accept(c *elton.Context, bodySize int) (acceptable bool
 }
 
 // Compress zstd compress
-func (z *ZstdCompressor) Compress(buf []byte) (*bytes.Buffer, error) {
-	encoder, err := zstd.NewWriter(nil, zstd.WithEncoderLevel(z.getLevel()))
+func (z *ZstdCompressor) Compress(buf []byte, levels ...int) (*bytes.Buffer, error) {
+	level := z.getLevel()
+	if len(levels) != 0 && levels[0] != middleware.IgnoreCompression {
+		level = zstd.EncoderLevel(levels[0])
+	}
+	encoder, err := zstd.NewWriter(nil, zstd.WithEncoderLevel(level))
 	if err != nil {
 		return nil, err
 	}

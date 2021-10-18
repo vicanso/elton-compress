@@ -65,7 +65,7 @@ func (l *Lz4Compressor) Accept(c *elton.Context, bodySize int) (acceptable bool,
 }
 
 // Compress lz4 compress
-func (l *Lz4Compressor) Compress(buf []byte) (*bytes.Buffer, error) {
+func (l *Lz4Compressor) Compress(buf []byte, levels ...int) (*bytes.Buffer, error) {
 	dst := make([]byte, len(buf))
 	n, err := lz4.CompressBlock(buf, dst, nil)
 	if err != nil {
