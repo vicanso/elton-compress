@@ -4,7 +4,7 @@ go 1.12
 
 require (
 	github.com/andybalholm/brotli v1.0.3
-	github.com/frankban/quicktest v1.13.1 // indirect
+	github.com/frankban/quicktest v1.14.0 // indirect
 	github.com/golang/snappy v0.0.4
 	github.com/klauspost/compress v1.13.6
 	github.com/pierrec/lz4 v2.6.1+incompatible
