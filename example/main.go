@@ -15,9 +15,7 @@ func main() {
 	// 需要注意添加的顺序，选择压缩是按添加的选择顺序选择适合的压缩方式
 	// 此处只是示例所有的压缩器，正常使用时，按需使用1，2个压缩方式则可
 	config := middleware.NewCompressConfig(
-		&compress.BrCompressor{
-			MinLength: 1024,
-		},
+		new(middleware.BrCompressor),
 		new(middleware.GzipCompressor),
 		new(compress.SnappyCompressor),
 		new(compress.ZstdCompressor),

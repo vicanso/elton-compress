@@ -44,10 +44,6 @@ func init() {
 	}
 	benchData = buf
 
-	br := new(BrCompressor)
-	brBuf, _ := br.Compress(buf)
-	fmt.Printf("br: %d bytes\n", brBuf.Len())
-
 	sn := new(SnappyCompressor)
 	snappyBuf, _ := sn.Compress(buf)
 	fmt.Printf("snappy: %d bytes\n", snappyBuf.Len())
@@ -59,17 +55,6 @@ func init() {
 	lz := new(Lz4Compressor)
 	lzBuf, _ := lz.Compress(buf)
 	fmt.Printf("lz4: %d bytes\n", lzBuf.Len())
-}
-
-func BenchmarkBr(b *testing.B) {
-	b.ReportAllocs()
-	br := new(BrCompressor)
-	for i := 0; i < b.N; i++ {
-		_, err := br.Compress(benchData)
-		if err != nil {
-			panic(err)
-		}
-	}
 }
 
 func BenchmarkSnappy(b *testing.B) {

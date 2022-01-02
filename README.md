@@ -5,7 +5,6 @@
 
 More compressor for elton compress middleware.
 
-- `BrCompressor` Brotli compression algorithm is better for http, most modern browser support it. Compress level is 1-11，default 0(6).
 - `SnappyCompressor` Snappy compression algorithm is fast, but not aim for maximum compression. It's useful for Intranet. Not support compress level.
 - `ZstdCompressor` Zstandard is a real-time compression algorithm, providing high compression ratios. Compress level is 1-2, default 0(2).
 - `Lz4Compressor` LZ4 is lossless compression algorithm, providing compression speed > 500 MB/s per core, scalable with multi-cores CPU. Compress level higher is better, use 0 for fastest compression.
@@ -28,7 +27,7 @@ func main() {
 	// 需要注意添加的顺序，压缩是按添加的选择顺序选择适合的压缩方式
 	// 此处只是示例所有的压缩器，正常使用时，按需使用1，2个压缩方式则可
 	config := middleware.NewCompressConfig(
-		&compress.BrCompressor{
+		&middleware.BrCompressor{
 			MinLength: 1024,
 		},
 		new(middleware.GzipCompressor),
@@ -75,14 +74,3 @@ br | 29897 | 2.948 | 6
 snappy | 47709 | 1.847 | - 
 zstd | 32816 | 2.686 | 2
 lz4 | 39434 | 2.235 | 6
-
-## brotli
-
-I use [Pure Go Brotli](https://github.com/andybalholm/brotli) instead of cbrotli, it is a little bit slow. 
-
-Test for encode html(113K) to br:
-
-```bash
-BenchmarkCBrotli-8    	     200	   9555795 ns/op
-BenchmarkGoBrotli-8   	     100	  10703582 ns/op
-```
