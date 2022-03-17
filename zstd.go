@@ -32,8 +32,10 @@ import (
 )
 
 const (
+	// https://en.wikipedia.org/wiki/Zstd
+	// In 2018 the algorithm was published as RFC 8478, which also defines an associated media type "application/zstd", filename extension "zst", and HTTP content encoding "zstd".[15]
 	// ZstdEncoding zstd encoding
-	ZstdEncoding = "zst"
+	ZstdEncoding = "zstd"
 )
 
 type (
