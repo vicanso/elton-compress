@@ -26,7 +26,6 @@ import (
 	"bytes"
 	"errors"
 	"io"
-	"io/ioutil"
 
 	"github.com/pierrec/lz4"
 	"github.com/vicanso/elton"
@@ -86,7 +85,7 @@ func (l *Lz4Compressor) Pipe(c *elton.Context) (err error) {
 	if ok {
 		defer closer.Close()
 	}
-	buf, err := ioutil.ReadAll(r)
+	buf, err := io.ReadAll(r)
 	if err != nil {
 		return
 	}

@@ -24,7 +24,7 @@ package compress
 
 import (
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"testing"
 )
@@ -38,7 +38,7 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
-	buf, err := ioutil.ReadAll(resp.Body)
+	buf, err := io.ReadAll(resp.Body)
 	if err != nil {
 		panic(err)
 	}

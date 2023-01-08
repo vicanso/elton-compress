@@ -2,7 +2,7 @@ package main
 
 import (
 	"bytes"
-	"io/ioutil"
+	"io"
 	"net/http"
 
 	"github.com/vicanso/elton"
@@ -31,7 +31,7 @@ func main() {
 			return
 		}
 		defer resp.Body.Close()
-		buf, err := ioutil.ReadAll(resp.Body)
+		buf, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return
 		}

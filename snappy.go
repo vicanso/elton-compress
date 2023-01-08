@@ -25,7 +25,6 @@ package compress
 import (
 	"bytes"
 	"io"
-	"io/ioutil"
 
 	"github.com/golang/snappy"
 	"github.com/vicanso/elton"
@@ -76,7 +75,7 @@ func (s *SnappyCompressor) Pipe(c *elton.Context) (err error) {
 	if ok {
 		defer closer.Close()
 	}
-	buf, err := ioutil.ReadAll(r)
+	buf, err := io.ReadAll(r)
 	if err != nil {
 		return
 	}
