@@ -1,6 +1,6 @@
 module github.com/vicanso/elton-compress
 
-go 1.12
+go 1.16
 
 require (
 	github.com/frankban/quicktest v1.14.2 // indirect
