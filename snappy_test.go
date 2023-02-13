@@ -37,7 +37,10 @@ import (
 // randomString get random string
 func randomString(n int) string {
 	b := make([]byte, n)
-	_, _ = rand.Read(b)
+	_, err := rand.Read(b)
+	if err != nil {
+		panic(err)
+	}
 	return base64.StdEncoding.EncodeToString(b)
 }
 
