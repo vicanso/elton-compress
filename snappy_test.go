@@ -24,26 +24,21 @@ package compress
 
 import (
 	"bytes"
-	"math/rand"
+	"crypto/rand"
+	"encoding/base64"
 	"net/http/httptest"
 	"testing"
-	"time"
 
 	"github.com/golang/snappy"
 	"github.com/stretchr/testify/assert"
 	"github.com/vicanso/elton"
 )
 
-var letterRunes = []rune("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_")
-
 // randomString get random string
 func randomString(n int) string {
-	b := make([]rune, n)
-	rand.Seed(time.Now().UnixNano())
-	for i := range b {
-		b[i] = letterRunes[rand.Intn(len(letterRunes))]
-	}
-	return string(b)
+	b := make([]byte, n)
+	_, _ = rand.Read(b)
+	return base64.StdEncoding.EncodeToString(b)
 }
 
 func TestSnappyCompress(t *testing.T) {
