@@ -26,7 +26,8 @@ import (
 	"bytes"
 	"io"
 
-	"github.com/golang/snappy"
+	"github.com/klauspost/compress/s2"
+	"github.com/klauspost/compress/snappy"
 	"github.com/vicanso/elton"
 	"github.com/vicanso/elton/middleware"
 )
@@ -63,7 +64,18 @@ func (s *SnappyCompressor) Accept(c *elton.Context, bodySize int) (acceptable bo
 // Compress snappy compress
 func (s *SnappyCompressor) Compress(buf []byte, levels ...int) (*bytes.Buffer, error) {
 	var dst []byte
-	data := snappy.Encode(dst, buf)
+	fn := snappy.Encode
+	if len(levels) != 0 {
+		switch levels[0] {
+		case 1:
+			fn = s2.EncodeSnappy
+		case 2:
+			fn = s2.EncodeSnappyBetter
+		case 3:
+			fn = s2.EncodeSnappyBest
+		}
+	}
+	data := fn(dst, buf)
 	return bytes.NewBuffer(data), nil
 }
 

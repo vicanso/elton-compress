@@ -3,10 +3,9 @@ module github.com/vicanso/elton-compress
 go 1.17
 
 require (
-	github.com/golang/snappy v0.0.4
-	github.com/klauspost/compress v1.15.15
+	github.com/klauspost/compress v1.16.0
 	github.com/pierrec/lz4 v2.6.1+incompatible
-	github.com/stretchr/testify v1.8.1
+	github.com/stretchr/testify v1.8.2
 	github.com/vicanso/elton v1.10.0
 )
 

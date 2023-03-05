@@ -29,7 +29,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/golang/snappy"
+	"github.com/klauspost/compress/snappy"
 	"github.com/stretchr/testify/assert"
 	"github.com/vicanso/elton"
 )
