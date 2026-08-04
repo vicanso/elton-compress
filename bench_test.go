@@ -23,69 +23,67 @@
 package compress
 
 import (
-	"fmt"
-	"io"
-	"net/http"
+	"bytes"
+	"math/rand"
 	"testing"
 )
 
-var (
-	benchData []byte
-)
+// benchData 为本地生成的测试语料。基准测试不依赖网络，
+// 否则离线环境下整个包的 go test 都会失败
+var benchData = newBenchData(64 * 1024)
 
-func init() {
-	resp, err := http.Get("https://cdn.staticfile.org/jquery/3.4.1/jquery.min.js")
-	if err != nil {
-		panic(err)
+// newBenchData 生成指定大小的伪文本语料：由固定词表按确定的随机序列拼接而成，
+// 兼具真实文本的可压缩性与跨机器可复现性
+func newBenchData(size int) []byte {
+	words := bytes.Fields(compressTestData)
+	// 固定种子，保证每次运行的语料完全一致
+	r := rand.New(rand.NewSource(1))
+	buf := new(bytes.Buffer)
+	buf.Grow(size)
+	for buf.Len() < size {
+		buf.Write(words[r.Intn(len(words))])
+		buf.WriteByte(' ')
 	}
-	buf, err := io.ReadAll(resp.Body)
-	if err != nil {
-		panic(err)
-	}
-	benchData = buf
-
-	sn := new(SnappyCompressor)
-	snappyBuf, _ := sn.Compress(buf)
-	fmt.Printf("snappy: %d bytes\n", snappyBuf.Len())
-
-	z := new(ZstdCompressor)
-	zBuf, _ := z.Compress(buf)
-	fmt.Printf("zstd: %d bytes\n", zBuf.Len())
-
-	lz := new(Lz4Compressor)
-	lzBuf, _ := lz.Compress(buf)
-	fmt.Printf("lz4: %d bytes\n", lzBuf.Len())
+	return buf.Bytes()[:size]
 }
 
 func BenchmarkSnappy(b *testing.B) {
-	b.ReportAllocs()
-	sn := new(SnappyCompressor)
-	for i := 0; i < b.N; i++ {
-		_, err := sn.Compress(benchData)
-		if err != nil {
-			panic(err)
-		}
-	}
+	benchmarkCompress(b, NewSnappyCompressor().Compress)
 }
 
-func BenchmarkZstd(b *testing.B) {
-	b.ReportAllocs()
-	z := new(ZstdCompressor)
-	for i := 0; i < b.N; i++ {
-		_, err := z.Compress(benchData)
-		if err != nil {
-			panic(err)
-		}
-	}
+func BenchmarkSnappyBest(b *testing.B) {
+	benchmarkCompress(b, (&SnappyCompressor{Level: SnappyLevelBest}).Compress)
+}
+
+func BenchmarkS2(b *testing.B) {
+	benchmarkCompress(b, NewS2Compressor().Compress)
+}
+
+func BenchmarkS2Best(b *testing.B) {
+	benchmarkCompress(b, (&S2Compressor{Level: S2LevelBest}).Compress)
 }
 
 func BenchmarkLz4(b *testing.B) {
+	benchmarkCompress(b, NewLz4Compressor().Compress)
+}
+
+func BenchmarkLz4Best(b *testing.B) {
+	benchmarkCompress(b, (&Lz4Compressor{Level: Lz4LevelBest}).Compress)
+}
+
+func benchmarkCompress(b *testing.B, fn func([]byte, ...int) (*bytes.Buffer, error)) {
+	b.SetBytes(int64(len(benchData)))
 	b.ReportAllocs()
-	lz := new(Lz4Compressor)
+	b.ResetTimer()
+	var buf *bytes.Buffer
 	for i := 0; i < b.N; i++ {
-		_, err := lz.Compress(benchData)
+		var err error
+		buf, err = fn(benchData)
 		if err != nil {
-			panic(err)
+			b.Fatal(err)
 		}
 	}
+	// 压缩率随基准一起输出，便于横向对比各算法。
+	// ResetTimer 会清空已上报的指标，因此必须在循环之后上报
+	b.ReportMetric(float64(len(benchData))/float64(buf.Len()), "ratio")
 }

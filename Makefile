@@ -1,6 +1,4 @@
-export GO111MODULE = on
-
-.PHONY: test test-cover
+.PHONY: test test-cover bench lint
 
 # for test
 test:
@@ -10,7 +8,7 @@ test-cover:
 	go test -race -coverprofile=test.out ./... && go tool cover --html=test.out
 
 bench:
-	go test -bench=. ./...
+	go test -bench=. -run='^$$' ./...
 
 lint:
 	golangci-lint run

@@ -5,9 +5,9 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/vicanso/elton"
-	compress "github.com/vicanso/elton-compress"
-	"github.com/vicanso/elton/middleware"
+	compress "github.com/vicanso/elton-compress/v2"
+	"github.com/vicanso/elton/v2"
+	"github.com/vicanso/elton/v2/middleware"
 )
 
 func main() {
@@ -15,10 +15,13 @@ func main() {
 	// 需要注意添加的顺序，选择压缩是按添加的选择顺序选择适合的压缩方式
 	// 此处只是示例所有的压缩器，正常使用时，按需使用1，2个压缩方式则可
 	config := middleware.NewCompressConfig(
-		new(middleware.BrCompressor),
-		new(middleware.GzipCompressor),
-		new(compress.SnappyCompressor),
-		new(compress.ZstdCompressor),
+		// gzip、br、zstd 由 elton 内置
+		middleware.NewBrCompressor(),
+		middleware.NewGzipCompressor(),
+		middleware.NewZstdCompressor(),
+		// snappy、s2、lz4 由本模块提供
+		compress.NewSnappyCompressor(),
+		compress.NewS2Compressor(),
 		&compress.Lz4Compressor{
 			MinLength: 10 * 1024,
 		},
@@ -30,7 +33,9 @@ func main() {
 		if err != nil {
 			return
 		}
-		defer resp.Body.Close()
+		defer func() {
+			_ = resp.Body.Close()
+		}()
 		buf, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return
